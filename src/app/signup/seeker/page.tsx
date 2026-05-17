@@ -1,12 +1,12 @@
-import { SignupForm } from "@/components/signup-form"
+import type { Metadata } from "next"
 
-export default function Page() {
-  return (
-    <div className="flex min-h-svh w-full items-center justify-center bg-muted/20 p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <SignupForm variant="seeker" />
-      </div>
-    </div>
-  )
+import { SeekerSignupScreen } from "@/components/seeker-signup-screen"
+
+export const metadata: Metadata = {
+  title: "Cadastro de Candidato - ITBA Empregos",
+  description: "Crie sua conta de candidato para acessar as vagas da plataforma.",
 }
 
+export default function Page() {
+  return <SeekerSignupScreen />
+}
