@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useState, type ReactNode } from "react"
+import { Toaster } from "sonner"
 
 export function AppProviders({
   children,
@@ -24,5 +25,10 @@ export function AppProviders({
       })
   )
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <Toaster richColors position="top-right" />
+    </QueryClientProvider>
+  )
 }

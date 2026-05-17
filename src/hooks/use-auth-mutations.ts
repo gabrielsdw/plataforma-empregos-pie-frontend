@@ -9,6 +9,7 @@ import {
   loginSchema,
   seekerSignupSchema,
 } from "@/hooks/auth-form-schemas"
+import { persistAuthSession } from "@/lib/auth-token"
 
 export type LoginInput = z.infer<typeof loginSchema>
 type ApiEnvelope<T> = {
@@ -26,7 +27,7 @@ export type AuthTokenResponse = {
     id?: string | number
     name?: string
     email?: string
-    role?: LoginInput["audience"]
+    role?: "candidate" | "business"
   }
 }
 
@@ -43,11 +44,16 @@ const authRoutes = {
 } as const
 
 async function loginRequest(input: LoginInput) {
-  loginSchema.parse(input)
+  const parsed = loginSchema.parse(input)
   const response = await api.post<ApiEnvelope<AuthTokenResponse>>(
     authRoutes.login,
-    input
+    {
+      email: parsed.email,
+      password: parsed.password,
+      audience: parsed.audience,
+    }
   )
+  persistAuthSession(response.data.data)
   return response.data.data
 }
 
@@ -75,6 +81,7 @@ async function seekerSignupRequest(input: SeekerSignupInput) {
     }
   )
 
+  persistAuthSession(response.data.data)
   return response.data.data
 }
 
@@ -93,11 +100,12 @@ async function businessSignupRequest(input: BusinessSignupInput) {
     }
   )
 
+  persistAuthSession(response.data.data)
   return response.data.data
 }
 
 export function useLoginMutation(
-  options?: UseMutationOptions<LoginResponse, unknown, LoginInput>
+  options?: UseMutationOptions<AuthTokenResponse, unknown, LoginInput>
 ) {
   return useMutation({
     mutationFn: loginRequest,

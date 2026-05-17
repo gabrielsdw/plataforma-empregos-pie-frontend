@@ -1,5 +1,8 @@
-import { useState, type FormEvent } from "react"
+"use client"
+
+import { type FormEvent } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   ArrowRight,
   FileUp,
@@ -8,6 +11,7 @@ import {
   Phone,
   UserRound,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,13 +25,10 @@ import { useSeekerSignupMutation } from "@/hooks/use-auth-mutations"
 
 export function SeekerSignupScreen() {
   const signupMutation = useSeekerSignupMutation()
-  const [localError, setLocalError] = useState<string | null>(null)
-
-  const errorMessage = localError ?? (signupMutation.error ? getApiErrorMessage(signupMutation.error) : null)
+  const router = useRouter()
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setLocalError(null)
 
     const form = event.currentTarget
     const formData = new FormData(form)
@@ -42,16 +43,19 @@ export function SeekerSignupScreen() {
     })
 
     if (!parsed.success) {
-      setLocalError(getFirstZodErrorMessage(parsed.error))
+      toast.warning(getFirstZodErrorMessage(parsed.error))
       return
     }
 
     try {
       await signupMutation.mutateAsync(parsed.data)
 
+      toast.success("Cadastro realizado com sucesso.")
       form.reset()
-    } catch {
-      // Mutation state already carries the error message.
+      router.push("/dashboard/seeker")
+      router.refresh()
+    } catch (error) {
+      toast.error(getApiErrorMessage(error))
     }
   }
 
@@ -229,11 +233,6 @@ export function SeekerSignupScreen() {
                   </Button>
                 </div>
 
-                {errorMessage ? (
-                  <p className="text-center text-sm text-destructive" role="alert">
-                    {errorMessage}
-                  </p>
-                ) : null}
               </form>
 
               <div className="mt-6 text-center">

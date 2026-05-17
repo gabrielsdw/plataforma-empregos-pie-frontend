@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -10,8 +11,9 @@ import {
   LockKeyhole,
   Mail,
 } from "lucide-react"
+import { toast } from "sonner"
 
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -34,17 +36,13 @@ const navigationItems = [
 export function LoginScreen() {
   const [audience, setAudience] = useState<Audience>("candidate")
   const [showPassword, setShowPassword] = useState(false)
-  const [localError, setLocalError] = useState<string | null>(null)
+  const router = useRouter()
   const loginMutation = useLoginMutation()
 
   const isCandidate = audience === "candidate"
-  const errorMessage =
-    localError ??
-    (loginMutation.error ? getApiErrorMessage(loginMutation.error) : null)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setLocalError(null)
 
     const form = event.currentTarget
     const formData = new FormData(event.currentTarget)
@@ -55,16 +53,23 @@ export function LoginScreen() {
     })
 
     if (!parsed.success) {
-      setLocalError(getFirstZodErrorMessage(parsed.error))
+      toast.warning(getFirstZodErrorMessage(parsed.error))
       return
     }
 
     try {
-      await loginMutation.mutateAsync(parsed.data)
+      const response = await loginMutation.mutateAsync(parsed.data)
 
+      toast.success("Login realizado com sucesso.")
       form.reset()
-    } catch {
-      // Mutation state already carries the error message.
+      router.push(
+        response.user?.role === "business"
+          ? "/dashboard/business"
+          : "/dashboard/seeker"
+      )
+      router.refresh()
+    } catch (error) {
+      toast.error(getApiErrorMessage(error))
     }
   }
 
@@ -96,21 +101,25 @@ export function LoginScreen() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="normal-case tracking-normal text-sm"
+            <Link
+              href="/"
+              className={buttonVariants({
+                variant: "ghost",
+                size: "sm",
+                className: "normal-case tracking-normal text-sm",
+              })}
             >
               Entrar
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="normal-case tracking-normal text-sm"
+            </Link>
+            <Link
+              href={isCandidate ? "/signup/seeker" : "/signup/business"}
+              className={buttonVariants({
+                size: "sm",
+                className: "normal-case tracking-normal text-sm",
+              })}
             >
               Cadastrar
-            </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -289,11 +298,6 @@ export function LoginScreen() {
                     <ArrowRight className="size-4" />
                   </Button>
 
-                  {errorMessage ? (
-                    <p className="text-center text-sm text-destructive" role="alert">
-                      {errorMessage}
-                    </p>
-                  ) : null}
                 </form>
 
                 <p className="mt-5 text-center text-sm text-muted-foreground">

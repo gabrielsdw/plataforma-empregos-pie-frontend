@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { type FormEvent } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   BadgeCheck,
   Building2,
@@ -10,6 +11,7 @@ import {
   LockKeyhole,
   Mail,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,13 +28,10 @@ const previewImage =
 
 export function BusinessSignupScreen() {
   const signupMutation = useBusinessSignupMutation()
-  const [localError, setLocalError] = useState<string | null>(null)
-
-  const errorMessage = localError ?? (signupMutation.error ? getApiErrorMessage(signupMutation.error) : null)
+  const router = useRouter()
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setLocalError(null)
 
     const form = event.currentTarget
     const formData = new FormData(form)
@@ -47,16 +46,19 @@ export function BusinessSignupScreen() {
     })
 
     if (!parsed.success) {
-      setLocalError(getFirstZodErrorMessage(parsed.error))
+      toast.warning(getFirstZodErrorMessage(parsed.error))
       return
     }
 
     try {
       await signupMutation.mutateAsync(parsed.data)
 
+      toast.success("Empresa cadastrada com sucesso.")
       form.reset()
-    } catch {
-      // Mutation state already carries the error message.
+      router.push("/dashboard/business")
+      router.refresh()
+    } catch (error) {
+      toast.error(getApiErrorMessage(error))
     }
   }
 
@@ -261,11 +263,6 @@ export function BusinessSignupScreen() {
                   </Button>
                 </div>
 
-                {errorMessage ? (
-                  <p className="text-center text-sm text-destructive" role="alert">
-                    {errorMessage}
-                  </p>
-                ) : null}
               </form>
 
               <div className="relative z-10 mt-6 text-center">
