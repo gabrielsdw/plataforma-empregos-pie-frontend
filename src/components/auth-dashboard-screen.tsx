@@ -1,17 +1,28 @@
 "use client"
 
+import { useState } from "react"
 import {
+  ArrowRight,
   BriefcaseBusiness,
+  Building2,
   FileText,
   Hourglass,
   Mail,
+  MapPin,
+  Search,
   UserRound,
-  Users,
+  WalletCards,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { PrivateShell } from "@/components/private-shell"
 import { buttonVariants } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  type VacancyResponse,
+  useBusinessVacanciesQuery,
+  usePublishedVacanciesQuery,
+} from "@/hooks/use-vacancy-mutations"
 import { cn } from "@/lib/utils"
 
 type AuthDashboardScreenProps = {
@@ -24,61 +35,17 @@ type DashboardMetric = {
   icon: React.ComponentType<{ className?: string }>
 }
 
-type DashboardJob = {
-  title: string
-  location: string
-  contract: string
-  applicants: string
-}
-
 type DashboardApplicant = {
   name: string
   role: string
   initials: string
 }
 
-const businessMetrics: DashboardMetric[] = [
-  { label: "Vagas ativas", value: "12", icon: BriefcaseBusiness },
-  { label: "Total de candidatos", value: "348", icon: Users },
-  { label: "Em entrevista", value: "24", icon: Mail },
-  { label: "Tempo de contratacao", value: "18d", icon: Hourglass },
-]
-
 const seekerMetrics: DashboardMetric[] = [
   { label: "Candidaturas enviadas", value: "18", icon: FileText },
   { label: "Empresas salvas", value: "7", icon: BriefcaseBusiness },
   { label: "Mensagens novas", value: "5", icon: Mail },
   { label: "Entrevistas agendadas", value: "3", icon: Hourglass },
-]
-
-const businessJobs: DashboardJob[] = [
-  {
-    title: "Designer UX Senior",
-    location: "Sao Paulo, SP",
-    contract: "Tempo integral",
-    applicants: "42 candidatos",
-  },
-  {
-    title: "Engenheiro Frontend React",
-    location: "Remoto",
-    contract: "Tempo integral",
-    applicants: "89 candidatos",
-  },
-]
-
-const seekerJobs: DashboardJob[] = [
-  {
-    title: "Product Designer Pleno",
-    location: "Hibrido",
-    contract: "Aplicado ha 2 dias",
-    applicants: "Triagem em andamento",
-  },
-  {
-    title: "Frontend Engineer",
-    location: "Remoto",
-    contract: "Entrevista marcada",
-    applicants: "Aguardando retorno",
-  },
 ]
 
 const businessApplicants: DashboardApplicant[] = [
@@ -91,22 +58,491 @@ const seekerApplicants: DashboardApplicant[] = [
   { name: "Nova Digital", role: "Novo convite para entrevista", initials: "ND" },
 ]
 
+const employmentTypeLabels: Record<VacancyResponse["employment_type"], string> = {
+  clt: "CLT",
+  pj: "PJ",
+  estagio: "Estagio",
+  temporario: "Temporario",
+}
+
+function getBusinessMetrics(vacancies: VacancyResponse[]): DashboardMetric[] {
+  const publishedCount = vacancies.filter((vacancy) => vacancy.status === "published").length
+  const draftCount = vacancies.filter((vacancy) => vacancy.status === "draft").length
+  const salaryCount = vacancies.filter(
+    (vacancy) => vacancy.salary_min !== null || vacancy.salary_max !== null
+  ).length
+  const remoteCount = vacancies.filter((vacancy) =>
+    vacancy.location.toLowerCase().includes("remoto")
+  ).length
+
+  return [
+    { label: "Vagas publicadas", value: String(publishedCount), icon: BriefcaseBusiness },
+    { label: "Rascunhos", value: String(draftCount), icon: FileText },
+    { label: "Com salario", value: String(salaryCount), icon: Mail },
+    { label: "Remotas", value: String(remoteCount), icon: Hourglass },
+  ]
+}
+
+function formatVacancyDate(value: string | null) {
+  if (!value) {
+    return "Ainda nao publicada"
+  }
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(value))
+}
+
+function formatSalaryRange(vacancy: VacancyResponse) {
+  if (vacancy.salary_min === null && vacancy.salary_max === null) {
+    return "Salario a combinar"
+  }
+
+  const formatter = new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  })
+
+  if (vacancy.salary_min !== null && vacancy.salary_max !== null) {
+    return `${formatter.format(Number(vacancy.salary_min))} - ${formatter.format(Number(vacancy.salary_max))}`
+  }
+
+  if (vacancy.salary_min !== null) {
+    return `A partir de ${formatter.format(Number(vacancy.salary_min))}`
+  }
+
+  return `Ate ${formatter.format(Number(vacancy.salary_max))}`
+}
+
+function getVacancyBadgeLabel(vacancy: VacancyResponse) {
+  if (vacancy.status === "draft") {
+    return "Rascunho"
+  }
+
+  return `Publicada em ${formatVacancyDate(vacancy.published_at)}`
+}
+
+function getVacancyCompanyName(vacancy: VacancyResponse) {
+  return vacancy.business?.company_name || vacancy.business?.name || "Empresa parceira"
+}
+
+function getTextParagraphs(value: string) {
+  return value
+    .split(/\n+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
+function getTextList(value: string) {
+  return value
+    .split(/\n+/)
+    .map((item) => item.replace(/^[-*]\s*/, "").trim())
+    .filter(Boolean)
+}
+
+function isNewVacancy(vacancy: VacancyResponse) {
+  if (!vacancy.published_at) {
+    return false
+  }
+
+  const publishedTime = new Date(vacancy.published_at).getTime()
+  const now = Date.now()
+  const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000
+
+  return now - publishedTime <= sevenDaysInMs
+}
+
+function getVacancyExcerpt(value: string) {
+  const normalized = value.replace(/\s+/g, " ").trim()
+
+  if (normalized.length <= 180) {
+    return normalized
+  }
+
+  return `${normalized.slice(0, 177)}...`
+}
+
 export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
-  const metrics = role === "business" ? businessMetrics : seekerMetrics
-  const jobs = role === "business" ? businessJobs : seekerJobs
-  const applicants = role === "business" ? businessApplicants : seekerApplicants
-  const pageTitle =
-    role === "business" ? "Painel do Empregador" : "Painel do Candidato"
-  const pageDescription =
-    role === "business"
-      ? "Gerencie seu funil de recrutamento, vagas ativas e novas candidaturas."
-      : "Acompanhe candidaturas, convites e sua presenca nas vagas em andamento."
-  const profileLabel =
-    role === "business" ? "Perfil da empresa" : "Perfil profissional"
-  const progress = role === "business" ? 85 : 78
+  const isBusiness = role === "business"
+  const [candidateSearch, setCandidateSearch] = useState("")
+  const [selectedVacancyId, setSelectedVacancyId] = useState<number | null>(null)
+
+  const {
+    data: businessVacancies = [],
+    isLoading: isLoadingBusinessVacancies,
+    isError: hasBusinessVacanciesError,
+  } = useBusinessVacanciesQuery({
+    enabled: isBusiness,
+  })
+  const {
+    data: publishedVacancies = [],
+    isLoading: isLoadingPublishedVacancies,
+    isError: hasPublishedVacanciesError,
+  } = usePublishedVacanciesQuery({
+    enabled: !isBusiness,
+  })
+
+  const metrics = isBusiness ? getBusinessMetrics(businessVacancies) : seekerMetrics
+  const applicants = isBusiness ? businessApplicants : seekerApplicants
+  const pageTitle = isBusiness ? "Painel do Empregador" : "Busca de Vagas"
+  const pageDescription = isBusiness
+    ? "Gerencie seu funil de recrutamento, vagas ativas e novas candidaturas."
+    : "Explore as vagas publicadas e acompanhe os detalhes da oportunidade selecionada."
+  const profileLabel = isBusiness ? "Perfil da empresa" : "Perfil profissional"
+  const progress = isBusiness ? 85 : 78
+
+  const filteredPublishedVacancies = publishedVacancies.filter((vacancy) => {
+    const search = candidateSearch.trim().toLowerCase()
+
+    if (!search) {
+      return true
+    }
+
+    return [vacancy.title, vacancy.location, getVacancyCompanyName(vacancy)]
+      .join(" ")
+      .toLowerCase()
+      .includes(search)
+  })
+
+  const selectedPublishedVacancy = filteredPublishedVacancies.find(
+    (vacancy) => vacancy.id === selectedVacancyId
+  ) ?? filteredPublishedVacancies[0] ?? null
 
   function handlePlaceholderClick(label: string) {
     toast.warning(`${label} ainda nao foi implementado.`)
+  }
+
+  function renderBusinessVacancies() {
+    if (isLoadingBusinessVacancies) {
+      return (
+        <article className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+          <p className="text-sm text-muted-foreground">Carregando vagas publicadas...</p>
+        </article>
+      )
+    }
+
+    if (hasBusinessVacanciesError) {
+      return (
+        <article className="rounded-2xl border border-destructive/30 bg-card p-6 shadow-sm">
+          <p className="text-sm text-destructive">
+            Nao foi possivel carregar as vagas publicadas da empresa.
+          </p>
+        </article>
+      )
+    }
+
+    if (businessVacancies.length === 0) {
+      return (
+        <article className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+          <h3 className="text-lg font-semibold">Nenhuma vaga publicada ainda</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Assim que voce publicar uma vaga, ela aparecera aqui no dashboard.
+          </p>
+        </article>
+      )
+    }
+
+    return businessVacancies.map((vacancy) => (
+      <article
+        key={vacancy.id}
+        className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm transition-shadow hover:shadow-md"
+      >
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">{vacancy.title}</h3>
+            <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <span>{vacancy.location}</span>
+              <span>{employmentTypeLabels[vacancy.employment_type]}</span>
+              <span>{formatSalaryRange(vacancy)}</span>
+            </div>
+            <div className="mt-4 inline-flex rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
+              {getVacancyBadgeLabel(vacancy)}
+            </div>
+          </div>
+
+          <div className="flex gap-5 text-sm font-medium">
+            <button
+              type="button"
+              onClick={() => handlePlaceholderClick(`Editar ${vacancy.title}`)}
+              className="text-primary transition-opacity hover:opacity-80"
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={() => handlePlaceholderClick(`Encerrar ${vacancy.title}`)}
+              className="text-destructive transition-opacity hover:opacity-80"
+            >
+              Encerrar vaga
+            </button>
+          </div>
+        </div>
+      </article>
+    ))
+  }
+
+  function renderCandidateVacancyDetails() {
+    if (isLoadingPublishedVacancies) {
+      return (
+        <section className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm">
+          <p className="text-sm text-muted-foreground">Carregando detalhes da vaga...</p>
+        </section>
+      )
+    }
+
+    if (hasPublishedVacanciesError) {
+      return (
+        <section className="rounded-3xl border border-destructive/30 bg-card p-6 shadow-sm">
+          <p className="text-sm text-destructive">
+            Nao foi possivel carregar os detalhes das vagas publicadas.
+          </p>
+        </section>
+      )
+    }
+
+    if (!selectedPublishedVacancy) {
+      return (
+        <section className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm">
+          <h3 className="text-lg font-semibold">Nenhuma vaga selecionada</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Selecione uma vaga da lista para visualizar mais detalhes.
+          </p>
+        </section>
+      )
+    }
+
+    const descriptionParagraphs = getTextParagraphs(selectedPublishedVacancy.description)
+    const requirementItems = getTextList(selectedPublishedVacancy.requirements)
+
+    return (
+      <section className="overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm xl:sticky xl:top-24">
+        <div className="border-b border-border/80 bg-muted/30 p-6">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Building2 className="size-8" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                  {selectedPublishedVacancy.title}
+                </h2>
+                <p className="mt-1 text-sm font-medium text-muted-foreground">
+                  {getVacancyCompanyName(selectedPublishedVacancy)}
+                </p>
+              </div>
+            </div>
+
+            {isNewVacancy(selectedPublishedVacancy) ? (
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                Novo
+              </span>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-2">
+              <MapPin className="size-4" />
+              {selectedPublishedVacancy.location}
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-2 text-primary">
+              <WalletCards className="size-4" />
+              {formatSalaryRange(selectedPublishedVacancy)}
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-2">
+              <BriefcaseBusiness className="size-4" />
+              {employmentTypeLabels[selectedPublishedVacancy.employment_type]}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handlePlaceholderClick(`Candidatar-se em ${selectedPublishedVacancy.title}`)}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            Candidatar-se
+            <ArrowRight className="size-4" />
+          </button>
+        </div>
+
+        <div className="space-y-6 p-6">
+          <section>
+            <h3 className="text-lg font-semibold text-foreground">Sobre a vaga</h3>
+            <div className="mt-3 space-y-3 text-sm leading-6 text-muted-foreground">
+              {descriptionParagraphs.map((paragraph, index) => (
+                <p key={`${selectedPublishedVacancy.id}-description-${index}`}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h3 className="text-lg font-semibold text-foreground">Requisitos</h3>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
+              {requirementItems.map((item, index) => (
+                <li
+                  key={`${selectedPublishedVacancy.id}-requirement-${index}`}
+                  className="flex gap-3"
+                >
+                  <span className="mt-2 size-1.5 rounded-full bg-primary/70" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </section>
+    )
+  }
+
+  if (!isBusiness) {
+    return (
+      <PrivateShell
+        role={role}
+        title={pageTitle}
+        description={pageDescription}
+        breadcrumb="Vagas"
+      >
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
+          <section className="space-y-5">
+            <div className="rounded-3xl border border-border/80 bg-card p-5 shadow-sm">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                    Vagas publicadas
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Encontre oportunidades abertas e selecione uma vaga para ver os detalhes.
+                  </p>
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  Mostrando {filteredPublishedVacancies.length} resultado(s)
+                </span>
+              </div>
+
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <div className="relative flex-1">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={candidateSearch}
+                    onChange={(event) => setCandidateSearch(event.target.value)}
+                    placeholder="Buscar vagas, empresas ou localidade"
+                    className="h-12 rounded-2xl border border-border/80 bg-background pl-10 pr-4"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handlePlaceholderClick("Filtros avancados")}
+                  className="rounded-2xl border border-border/80 bg-background px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  Filtrar
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {isLoadingPublishedVacancies ? (
+                <article className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm">
+                  <p className="text-sm text-muted-foreground">Carregando vagas publicadas...</p>
+                </article>
+              ) : null}
+
+              {!isLoadingPublishedVacancies && hasPublishedVacanciesError ? (
+                <article className="rounded-3xl border border-destructive/30 bg-card p-6 shadow-sm">
+                  <p className="text-sm text-destructive">
+                    Nao foi possivel carregar as vagas publicadas no momento.
+                  </p>
+                </article>
+              ) : null}
+
+              {!isLoadingPublishedVacancies &&
+              !hasPublishedVacanciesError &&
+              filteredPublishedVacancies.length === 0 ? (
+                <article className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Nenhuma vaga encontrada
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Ajuste a busca para encontrar mais oportunidades publicadas.
+                  </p>
+                </article>
+              ) : null}
+
+              {!isLoadingPublishedVacancies &&
+              !hasPublishedVacanciesError &&
+              filteredPublishedVacancies.map((vacancy) => {
+                const isActive = selectedPublishedVacancy?.id === vacancy.id
+
+                return (
+                  <button
+                    key={vacancy.id}
+                    type="button"
+                    onClick={() => setSelectedVacancyId(vacancy.id)}
+                    className={cn(
+                      "relative block w-full overflow-hidden rounded-3xl border bg-card p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+                      isActive
+                        ? "border-primary ring-2 ring-primary/15"
+                        : "border-border/80"
+                    )}
+                  >
+                    {isActive ? (
+                      <span className="absolute inset-y-0 left-0 w-1 rounded-l-3xl bg-primary" />
+                    ) : null}
+
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="text-xl font-semibold text-foreground">
+                          {vacancy.title}
+                        </h3>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">
+                            {getVacancyCompanyName(vacancy)}
+                          </span>
+                          <span>•</span>
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="size-4" />
+                            {vacancy.location}
+                          </span>
+                        </div>
+                      </div>
+
+                      {isNewVacancy(vacancy) ? (
+                        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                          Novo
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+                      <span className="inline-flex items-center gap-2 text-primary">
+                        <WalletCards className="size-4" />
+                        {formatSalaryRange(vacancy)}
+                      </span>
+                      <span className="inline-flex items-center gap-2 text-muted-foreground">
+                        <BriefcaseBusiness className="size-4" />
+                        {employmentTypeLabels[vacancy.employment_type]}
+                      </span>
+                    </div>
+
+                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                      {getVacancyExcerpt(vacancy.description)}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+
+          <div className="space-y-4">
+            <div className="hidden xl:block">{renderCandidateVacancyDetails()}</div>
+            <div className="xl:hidden">{renderCandidateVacancyDetails()}</div>
+          </div>
+        </div>
+      </PrivateShell>
+    )
   }
 
   return (
@@ -146,84 +582,29 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold tracking-tight">
-                {role === "business"
-                  ? "Listagens ativas"
-                  : "Oportunidades em andamento"}
+                Vagas publicadas
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {role === "business"
-                  ? "Edite vagas, acompanhe volume e acione seu processo seletivo."
-                  : "Veja o status das vagas que ja fazem parte do seu processo."}
+                Acompanhe as vagas criadas pela sua empresa e o status de publicacao.
               </p>
             </div>
             <button
               type="button"
-              onClick={() =>
-                handlePlaceholderClick(
-                  role === "business"
-                    ? "Ver todas as vagas"
-                    : "Ver todas as candidaturas"
-                )
-              }
+              onClick={() => handlePlaceholderClick("Ver todas as vagas")}
               className="text-sm font-medium text-primary transition-opacity hover:opacity-80"
             >
               Ver todas
             </button>
           </div>
 
-          <div className="space-y-4">
-            {jobs.map((job) => (
-              <article
-                key={job.title}
-                className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm transition-shadow hover:shadow-md"
-              >
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold">{job.title}</h3>
-                    <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
-                      <span>{job.location}</span>
-                      <span>{job.contract}</span>
-                    </div>
-                    <div className="mt-4 inline-flex rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
-                      {job.applicants}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-5 text-sm font-medium">
-                    <button
-                      type="button"
-                      onClick={() => handlePlaceholderClick(`Editar ${job.title}`)}
-                      className="text-primary transition-opacity hover:opacity-80"
-                    >
-                      {role === "business" ? "Editar" : "Detalhes"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handlePlaceholderClick(
-                          role === "business"
-                            ? `Encerrar ${job.title}`
-                            : `Atualizar ${job.title}`
-                        )
-                      }
-                      className="text-destructive transition-opacity hover:opacity-80"
-                    >
-                      {role === "business" ? "Encerrar vaga" : "Atualizar"}
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <div className="space-y-4">{renderBusinessVacancies()}</div>
         </section>
 
         <aside className="space-y-8">
           <section className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold tracking-tight">
-                {role === "business"
-                  ? "Candidaturas recentes"
-                  : "Movimentacoes recentes"}
+                Candidaturas recentes
               </h2>
             </div>
 
@@ -250,14 +631,10 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
 
             <button
               type="button"
-              onClick={() =>
-                handlePlaceholderClick(
-                  role === "business" ? "Ver todo o funil" : "Ver atualizacoes"
-                )
-              }
+              onClick={() => handlePlaceholderClick("Ver todo o funil")}
               className="mt-6 w-full rounded-xl py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5"
             >
-              {role === "business" ? "Ver todo o funil" : "Ver atualizacoes"}
+              Ver todo o funil
             </button>
           </section>
 

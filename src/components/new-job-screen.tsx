@@ -272,28 +272,6 @@ export function NewJobScreen() {
               </ul>
             </CardContent>
           </Card>
-
-          <Card className="rounded-2xl border border-primary/20 bg-primary/5 py-0 shadow-sm">
-            <CardContent className="flex flex-col items-center p-6 text-center">
-              <Rocket className="mb-4 size-10 text-primary" />
-              <h3 className="font-heading text-xl font-semibold tracking-tight">
-                Aumente o Alcance
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Destaque sua vaga e receba candidaturas de talentos qualificados
-                mais rapido.
-              </p>
-              <button
-                type="button"
-                onClick={() =>
-                  toast.warning("Planos premium ainda nao foram implementados.")
-                }
-                className="mt-4 text-sm font-semibold text-primary transition-opacity hover:opacity-80"
-              >
-                Ver Planos Premium
-              </button>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </PrivateShell>

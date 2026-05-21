@@ -1,6 +1,6 @@
 "use client"
 
-import { type FormEvent } from "react"
+import { type ChangeEvent, type FormEvent } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -23,9 +23,31 @@ import {
 import { getApiErrorMessage } from "@/hooks/use-api-error"
 import { useSeekerSignupMutation } from "@/hooks/use-auth-mutations"
 
+function formatPhone(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 11)
+
+  if (digits.length <= 2) {
+    return digits.length === 0 ? "" : `(${digits}`
+  }
+
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  }
+
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  }
+
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+}
+
 export function SeekerSignupScreen() {
   const signupMutation = useSeekerSignupMutation()
   const router = useRouter()
+
+  function handlePhoneChange(event: ChangeEvent<HTMLInputElement>) {
+    event.currentTarget.value = formatPhone(event.currentTarget.value)
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -143,6 +165,8 @@ export function SeekerSignupScreen() {
                         inputMode="tel"
                         autoComplete="tel"
                         placeholder="(11) 99999-9999"
+                        maxLength={15}
+                        onChange={handlePhoneChange}
                         className="h-12 rounded-lg border border-border/80 bg-background pl-10 pr-4 text-sm shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0"
                         required
                       />
