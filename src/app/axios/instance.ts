@@ -26,6 +26,10 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       removeAuthToken()
+
+      if (typeof window !== "undefined" && window.location.pathname !== "/") {
+        window.location.href = "/"
+      }
     }
 
     return Promise.reject(error)

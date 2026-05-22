@@ -46,19 +46,19 @@ const businessNavItems: NavItem[] = [
     label: "Publicar Vaga",
     href: "/dashboard/business/jobs/new",
     icon: Plus,
-    match: (pathname) => pathname.startsWith("/dashboard/business/jobs/new"),
+    match: (pathname) => pathname.startsWith("/dashboard/business/jobs/"),
   },
   {
     label: "Minhas Vagas",
-    href: "#",
+    href: "/dashboard/business",
     icon: BriefcaseBusiness,
-    match: () => false,
+    match: (pathname) => pathname === "/dashboard/business",
   },
   {
     label: "Candidatos",
-    href: "#",
+    href: "/dashboard/business/candidates",
     icon: UserRound,
-    match: () => false,
+    match: (pathname) => pathname.startsWith("/dashboard/business/candidates"),
   },
   {
     label: "Perfil da Empresa",
@@ -77,9 +77,9 @@ const candidateNavItems: NavItem[] = [
   },
   {
     label: "Minhas candidaturas",
-    href: "#",
+    href: "/dashboard/seeker/applications",
     icon: FileText,
-    match: () => false,
+    match: (pathname) => pathname.startsWith("/dashboard/seeker/applications"),
   },
   {
     label: "Mensagens",

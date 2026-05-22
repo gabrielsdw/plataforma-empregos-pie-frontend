@@ -27,7 +27,11 @@ export type AuthTokenResponse = {
     id?: string | number
     name?: string
     email?: string
+    phone?: string | null
     role?: "candidate" | "business"
+    company_name?: string | null
+    website?: string | null
+    resume_path?: string | null
   }
 }
 
