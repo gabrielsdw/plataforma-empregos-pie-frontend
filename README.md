@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Plataforma de Empregos PIE - Interface Frontend
 
-## Getting Started
+Este é o cliente web da Plataforma de Empregos PIE. Uma interface moderna, rápida e responsiva construída com **Next.js** e **Tailwind CSS**, que consome a API de recrutamento.
 
-First, run the development server:
+## 🛠️ Tecnologias e Bibliotecas
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+* **Framework:** Next.js (React) com App Router
+* **Linguagem:** TypeScript
+* **Estilização:** Tailwind CSS & componentes Shadcn UI
+* **Comunicação com a API:** Axios
+* **Validação de Formulários:** Zod
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 💻 Telas e Fluxos Implementados
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+* **Público:** Página Inicial e Login unificado.
+* **Registo:** Páginas dedicadas para Candidatos e Empresas.
+* **Dashboard da Empresa:** Criação de vagas, edição de vagas e visualização de candidatos inscritos.
+* **Dashboard do Candidato:** Exploração de vagas disponíveis no mercado, candidatura com um clique e acompanhamento de status.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔧 Instalação e Execução
 
-## Learn More
+Pré-requisitos: Node.js (versão 18 ou superior) e um gestor de pacotes (npm ou yarn).
 
-To learn more about Next.js, take a look at the following resources:
+Passo 1: Instalar as Dependências
+Instale todos os pacotes necessários definidos no projeto:
+    npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Passo 2: Configurar as Variáveis de Ambiente
+Crie um ficheiro chamado .env.local na raiz desta pasta e configure o endereço base da sua API Laravel:
+    NEXT_PUBLIC_API_URL=http://localhost:8000/api
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Passo 3: Iniciar o Servidor de Desenvolvimento
+Execute o comando para levantar o Next.js localmente:
+    npm run dev
 
-## Deploy on Vercel
+O frontend estará acessível no seu navegador através do endereço: http://localhost:3000
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📂 Arquitetura do Código
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* src/app/: Estrutura de rotas baseada em pastas do Next.js (páginas de login, registo e os dashboards).
+* src/components/: Componentes visuais da aplicação (ecrãs completos e elementos de UI reutilizáveis).
+* src/hooks/: Custom hooks que isolam a lógica de negócio e mutações de dados com a API.
+* src/lib/: Utilitários gerais e configuração da instância do Axios.
