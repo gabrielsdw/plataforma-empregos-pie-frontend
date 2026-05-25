@@ -38,7 +38,7 @@ export function SeekerApplicationsScreen() {
     <PrivateShell
       role="candidate"
       title="Minhas candidaturas"
-      description="Acompanhe todas as vagas em que voce ja enviou candidatura."
+      description="Acompanhe todas as vagas em que você já enviou candidatura."
       breadcrumb="Minhas candidaturas"
     >
       <div className="space-y-5">
@@ -56,13 +56,13 @@ export function SeekerApplicationsScreen() {
 
         {isError ? (
           <div className="rounded-2xl border border-destructive/30 bg-card p-6 shadow-sm">
-            <p className="text-sm text-destructive">Nao foi possivel carregar suas candidaturas.</p>
+            <p className="text-sm text-destructive">Não foi possível carregar suas candidaturas.</p>
           </div>
         ) : null}
 
         {!isLoading && !isError && applications.length === 0 ? (
           <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
-            <p className="text-sm text-muted-foreground">Voce ainda nao enviou nenhuma candidatura.</p>
+            <p className="text-sm text-muted-foreground">Você ainda não enviou nenhuma candidatura.</p>
           </div>
         ) : null}
 
@@ -84,11 +84,11 @@ export function SeekerApplicationsScreen() {
                       </span>
                       <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
                         <MapPin className="size-4" />
-                        {application.vacancy?.location ?? "Localidade nao informada"}
+                        {application.vacancy?.location ?? "Localidade não informada"}
                       </span>
                       <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
                         <Phone className="size-4" />
-                        {application.phone || "Telefone nao informado"}
+                        {application.phone || "Telefone não informado"}
                       </span>
                     </div>
                   </div>
@@ -111,9 +111,9 @@ export function SeekerApplicationsScreen() {
                 ) : null}
 
                 <div className="mt-5 rounded-xl border border-border/70 bg-muted/30 p-4">
-                  <h3 className="text-sm font-semibold text-foreground">Carta de apresentacao</h3>
+                  <h3 className="text-sm font-semibold text-foreground">Carta de apresentação</h3>
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
-                    {application.cover_letter || "Sem carta de apresentacao informada."}
+                    {application.cover_letter || "Sem carta de apresentação informada."}
                   </p>
                 </div>
               </article>

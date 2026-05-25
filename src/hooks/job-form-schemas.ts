@@ -20,7 +20,7 @@ export const vacancyFormSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["salaryMin"],
-        message: "Informe um salario minimo valido.",
+        message: "Informe um salário mínimo válido.",
       })
     }
 
@@ -28,7 +28,7 @@ export const vacancyFormSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["salaryMax"],
-        message: "Informe um salario maximo valido.",
+        message: "Informe um salário máximo válido.",
       })
     }
 
@@ -36,7 +36,7 @@ export const vacancyFormSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["salaryMax"],
-        message: "O salario maximo deve ser maior ou igual ao minimo.",
+        message: "O salário máximo deve ser maior ou igual ao mínimo.",
       })
     }
   })

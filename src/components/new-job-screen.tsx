@@ -16,7 +16,7 @@ import { getApiErrorMessage } from "@/hooks/use-api-error"
 import { useCreateVacancyMutation } from "@/hooks/use-vacancy-mutations"
 
 const successTips = [
-  "Seja claro e objetivo no titulo. Evite jargoes internos da empresa.",
+  "Seja claro e objetivo no título. Evite jargões internos da empresa.",
   "Detalhe os beneficios oferecidos e o contexto do time para aumentar a taxa de resposta.",
   "Especifique claramente se a vaga e presencial, hibrida ou remota.",
 ]
@@ -71,7 +71,7 @@ export function NewJobScreen() {
     <PrivateShell
       role="business"
       title="Publicar Nova Vaga"
-      description="Preencha as informacoes detalhadas para atrair os melhores talentos para sua empresa."
+      description="Preencha as informações detalhadas para atrair os melhores talentos para sua empresa."
       breadcrumb="Publicar Vaga"
     >
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -81,7 +81,7 @@ export function NewJobScreen() {
               <section className="space-y-6">
                 <div className="border-b border-border/80 pb-3">
                   <h2 className="font-heading text-2xl font-semibold tracking-tight">
-                    Informacoes Principais
+                    Informações Principais
                   </h2>
                 </div>
 
@@ -122,8 +122,8 @@ export function NewJobScreen() {
                         </option>
                         <option value="clt">CLT</option>
                         <option value="pj">PJ</option>
-                        <option value="estagio">Estagio</option>
-                        <option value="temporario">Temporario</option>
+                        <option value="estagio">Estágio</option>
+                        <option value="temporario">Temporário</option>
                       </select>
                     </div>
 
@@ -195,13 +195,13 @@ export function NewJobScreen() {
                       htmlFor="description"
                       className="mb-2 block text-sm font-medium normal-case tracking-normal text-foreground"
                     >
-                      Descricao da Vaga *
+                      Descrição da Vaga *
                     </Label>
                     <textarea
                       id="description"
                       name="description"
                       rows={5}
-                      placeholder="Descreva as responsabilidades, o dia a dia e o impacto dessa funcao..."
+                      placeholder="Descreva as responsabilidades, o dia a dia e o impacto dessa função..."
                       className="w-full rounded-lg border border-border/80 bg-background px-4 py-3 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
                       required
                     />
@@ -218,7 +218,7 @@ export function NewJobScreen() {
                       id="requirements"
                       name="requirements"
                       rows={5}
-                      placeholder="Liste as habilidades tecnicas e comportamentais necessarias..."
+                      placeholder="Liste as habilidades técnicas e comportamentais necessárias..."
                       className="w-full rounded-lg border border-border/80 bg-background px-4 py-3 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
                       required
                     />

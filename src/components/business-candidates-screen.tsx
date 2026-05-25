@@ -57,13 +57,13 @@ export function BusinessCandidatesScreen() {
 
         {isError ? (
           <div className="rounded-2xl border border-destructive/30 bg-card p-6 shadow-sm">
-            <p className="text-sm text-destructive">Nao foi possivel carregar os candidatos.</p>
+            <p className="text-sm text-destructive">Não foi possível carregar os candidatos.</p>
           </div>
         ) : null}
 
         {!isLoading && !isError && applications.length === 0 ? (
           <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
-            <p className="text-sm text-muted-foreground">Nenhum candidato encontrado ate o momento.</p>
+            <p className="text-sm text-muted-foreground">Nenhum candidato encontrado até o momento.</p>
           </div>
         ) : null}
 
@@ -121,16 +121,16 @@ export function BusinessCandidatesScreen() {
                       {candidate?.resume_path ? (
                         <span className="inline-flex items-center gap-2 text-muted-foreground">
                           <UserRound className="size-4" />
-                          Curriculo enviado no cadastro
+                          Currículo enviado no cadastro
                         </span>
                       ) : null}
                     </div>
                   </div>
 
                   <div className="mt-5 rounded-xl border border-border/70 bg-muted/30 p-4">
-                    <h3 className="text-sm font-semibold text-foreground">Carta de apresentacao</h3>
+                    <h3 className="text-sm font-semibold text-foreground">Carta de apresentação</h3>
                     <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
-                      {application.cover_letter || "Sem carta de apresentacao informada."}
+                      {application.cover_letter || "Sem carta de apresentação informada."}
                     </p>
                   </div>
                 </article>

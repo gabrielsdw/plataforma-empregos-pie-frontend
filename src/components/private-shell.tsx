@@ -7,8 +7,8 @@ import {
   BriefcaseBusiness,
   FileText,
   Gauge,
+  Info,
   LogOut,
-  Mail,
   Plus,
   Settings,
   UserRound,
@@ -61,10 +61,16 @@ const businessNavItems: NavItem[] = [
     match: (pathname) => pathname.startsWith("/dashboard/business/candidates"),
   },
   {
-    label: "Perfil da Empresa",
-    href: "#",
+    label: "Perfil",
+    href: "/dashboard/business/profile",
     icon: Settings,
-    match: () => false,
+    match: (pathname) => pathname.startsWith("/dashboard/business/profile"),
+  },
+  {
+    label: "Sobre",
+    href: "/dashboard/business/about",
+    icon: Info,
+    match: (pathname) => pathname.startsWith("/dashboard/business/about"),
   },
 ]
 
@@ -82,16 +88,16 @@ const candidateNavItems: NavItem[] = [
     match: (pathname) => pathname.startsWith("/dashboard/seeker/applications"),
   },
   {
-    label: "Mensagens",
-    href: "#",
-    icon: Mail,
-    match: () => false,
+    label: "Perfil",
+    href: "/dashboard/seeker/profile",
+    icon: Settings,
+    match: (pathname) => pathname.startsWith("/dashboard/seeker/profile"),
   },
   {
-    label: "Configuracoes",
-    href: "#",
-    icon: Settings,
-    match: () => false,
+    label: "Sobre",
+    href: "/dashboard/seeker/about",
+    icon: Info,
+    match: (pathname) => pathname.startsWith("/dashboard/seeker/about"),
   },
 ]
 
@@ -116,27 +122,22 @@ export function PrivateShell({
   const router = useRouter()
 
   const userName =
-    session?.user?.name?.trim() ||
-    (role === "business" ? "Empresa autenticada" : "Candidato autenticado")
+    session?.user?.company_name?.trim() || session?.user?.name?.trim() || "Perfil"
   const userInitials = buildProfileInitials(userName)
   const navItems = role === "business" ? businessNavItems : candidateNavItems
   const roleLabel =
     role === "business" ? "Painel do Recrutador" : "Painel do Candidato"
 
-  function handlePlaceholderClick(label: string) {
-    toast.warning(`${label} ainda nao foi implementado.`)
-  }
-
   function handleLogout() {
     removeAuthToken()
-    toast.success("Sessao encerrada.")
+    toast.success("Sessão encerrada.")
     router.push("/")
     router.refresh()
   }
 
   return (
     <div className="flex min-h-svh bg-background text-foreground">
-      <aside className="hidden h-screen w-64 shrink-0 border-r border-border/80 bg-card lg:flex lg:flex-col lg:sticky lg:top-0">
+      <aside className="hidden h-screen w-64 shrink-0 border-r border-border/80 bg-card lg:sticky lg:top-0 lg:flex lg:flex-col">
         <div className="p-6">
           <Link href="/" className="text-xl font-extrabold tracking-tight text-primary">
             ITBA Empregos
@@ -146,24 +147,10 @@ export function PrivateShell({
           </p>
         </div>
 
-        <nav className="flex-grow px-4 space-y-1">
+        <nav className="flex-grow space-y-1 px-4">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = item.match(pathname)
-
-            if (item.href === "#") {
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => handlePlaceholderClick(item.label)}
-                  className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  <Icon className="size-5" />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </button>
-              )
-            }
 
             return (
               <Link
@@ -198,15 +185,14 @@ export function PrivateShell({
       <div className="flex min-h-svh flex-1 flex-col">
         <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border/80 bg-card px-6 backdrop-blur lg:px-8">
           <h2 className="text-sm text-muted-foreground">
-            {roleLabel} /{" "}
-            <span className="font-semibold text-foreground">{breadcrumb}</span>
+            {roleLabel} / <span className="font-semibold text-foreground">{breadcrumb}</span>
           </h2>
 
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold leading-none">{userName}</p>
               <p className="mt-1 text-xs leading-none text-muted-foreground">
-                {role === "business" ? "Empresa autenticada" : "Perfil autenticado"}
+                {role === "business" ? "Empresa" : "Candidato"}
               </p>
             </div>
             <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
@@ -230,20 +216,6 @@ export function PrivateShell({
               {navItems.map((item) => {
                 const Icon = item.icon
                 const isActive = item.match(pathname)
-
-                if (item.href === "#") {
-                  return (
-                    <button
-                      key={item.label}
-                      type="button"
-                      onClick={() => handlePlaceholderClick(item.label)}
-                      className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground"
-                    >
-                      <Icon className="size-4" />
-                      {item.label}
-                    </button>
-                  )
-                }
 
                 return (
                   <Link

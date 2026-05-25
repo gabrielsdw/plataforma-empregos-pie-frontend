@@ -20,8 +20,8 @@ import {
 
 const successTips = [
   "Ajuste o titulo para refletir senioridade, stack e contexto da vaga.",
-  "Revise a descricao para manter a oportunidade atualizada e competitiva.",
-  "Ao republicar uma vaga encerrada, confira salario, localidade e requisitos.",
+  "Revise a descrição para manter a oportunidade atualizada e competitiva.",
+  "Ao republicar uma vaga encerrada, confira salário, localidade e requisitos.",
 ]
 
 export function EditJobScreen() {
@@ -86,7 +86,7 @@ export function EditJobScreen() {
       <PrivateShell
         role="business"
         title="Editar Vaga"
-        description="Carregando os dados da vaga para edicao."
+        description="Carregando os dados da vaga para edição."
         breadcrumb="Editar Vaga"
       >
         <Card className="rounded-2xl border border-border/80 bg-card py-0 shadow-sm">
@@ -103,13 +103,13 @@ export function EditJobScreen() {
       <PrivateShell
         role="business"
         title="Editar Vaga"
-        description="Nao foi possivel carregar a vaga solicitada."
+        description="Não foi possível carregar a vaga solicitada."
         breadcrumb="Editar Vaga"
       >
         <Card className="rounded-2xl border border-destructive/30 bg-card py-0 shadow-sm">
           <CardContent className="p-6">
             <p className="text-sm text-destructive">
-              Nao foi possivel carregar os dados da vaga para edicao.
+              Não foi possível carregar os dados da vaga para edição.
             </p>
           </CardContent>
         </Card>
@@ -126,7 +126,7 @@ export function EditJobScreen() {
     <PrivateShell
       role="business"
       title="Editar Vaga"
-      description="Atualize as informacoes da vaga e ajuste o status de publicacao conforme necessario."
+      description="Atualize as informações da vaga e ajuste o status de publicação conforme necessário."
       breadcrumb="Editar Vaga"
     >
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -136,7 +136,7 @@ export function EditJobScreen() {
               <section className="space-y-6">
                 <div className="border-b border-border/80 pb-3">
                   <h2 className="font-heading text-2xl font-semibold tracking-tight">
-                    Informacoes Principais
+                    Informações Principais
                   </h2>
                 </div>
 
@@ -175,8 +175,8 @@ export function EditJobScreen() {
                       >
                         <option value="clt">CLT</option>
                         <option value="pj">PJ</option>
-                        <option value="estagio">Estagio</option>
-                        <option value="temporario">Temporario</option>
+                        <option value="estagio">Estágio</option>
+                        <option value="temporario">Temporário</option>
                       </select>
                     </div>
 
@@ -251,14 +251,14 @@ export function EditJobScreen() {
                       htmlFor="description"
                       className="mb-2 block text-sm font-medium normal-case tracking-normal text-foreground"
                     >
-                      Descricao da Vaga *
+                      Descrição da Vaga *
                     </Label>
                     <textarea
                       id="description"
                       name="description"
                       rows={5}
                       defaultValue={vacancy.description}
-                      placeholder="Descreva as responsabilidades, o dia a dia e o impacto dessa funcao..."
+                      placeholder="Descreva as responsabilidades, o dia a dia e o impacto dessa função..."
                       className="w-full rounded-lg border border-border/80 bg-background px-4 py-3 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
                       required
                     />
@@ -276,7 +276,7 @@ export function EditJobScreen() {
                       name="requirements"
                       rows={5}
                       defaultValue={vacancy.requirements}
-                      placeholder="Liste as habilidades tecnicas e comportamentais necessarias..."
+                      placeholder="Liste as habilidades técnicas e comportamentais necessárias..."
                       className="w-full rounded-lg border border-border/80 bg-background px-4 py-3 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
                       required
                     />
