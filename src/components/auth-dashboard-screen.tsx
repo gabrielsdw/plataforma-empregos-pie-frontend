@@ -52,8 +52,8 @@ const seekerMetrics: DashboardMetric[] = [
 const employmentTypeLabels: Record<VacancyResponse["employment_type"], string> = {
   clt: "CLT",
   pj: "PJ",
-  estagio: "Estagio",
-  temporario: "Temporario",
+  estagio: "Estágio",
+  temporario: "Temporário",
 }
 
 function buildInitials(name: string) {
@@ -99,7 +99,7 @@ function isValidApplicationForm(phone: string, portfolioUrl: string, coverLetter
   }
 
   if (coverLetter.trim().length < 20) {
-    return "Escreva uma carta de apresentacao com pelo menos 20 caracteres."
+    return "Escreva uma carta de apresentação com pelo menos 20 caracteres."
   }
 
   return null
@@ -118,14 +118,14 @@ function getBusinessMetrics(vacancies: VacancyResponse[]): DashboardMetric[] {
   return [
     { label: "Vagas publicadas", value: String(publishedCount), icon: BriefcaseBusiness },
     { label: "Rascunhos", value: String(draftCount), icon: FileText },
-    { label: "Com salario", value: String(salaryCount), icon: Mail },
+    { label: "Com salário", value: String(salaryCount), icon: Mail },
     { label: "Remotas", value: String(remoteCount), icon: Hourglass },
   ]
 }
 
 function formatVacancyDate(value: string | null) {
   if (!value) {
-    return "Ainda nao publicada"
+    return "Ainda não publicada"
   }
 
   return new Intl.DateTimeFormat("pt-BR", {
@@ -151,7 +151,7 @@ function formatApplicationDate(value: string | null) {
 
 function formatSalaryRange(vacancy: VacancyResponse) {
   if (vacancy.salary_min === null && vacancy.salary_max === null) {
-    return "Salario a combinar"
+    return "Salário a combinar"
   }
 
   const formatter = new Intl.NumberFormat("pt-BR", {
@@ -229,10 +229,45 @@ function getVacancyExcerpt(value: string) {
   return `${normalized.slice(0, 177)}...`
 }
 
+type VacancyWorkMode = "all" | "remote" | "hybrid" | "onsite"
+
+function getVacancyWorkMode(location: string): Exclude<VacancyWorkMode, "all"> {
+  const normalized = location.toLowerCase()
+
+  if (normalized.includes("remoto") || normalized.includes("remote") || normalized.includes("home office")) {
+    return "remote"
+  }
+
+  if (normalized.includes("hibrid")) {
+    return "hybrid"
+  }
+
+  return "onsite"
+}
+
+function getVacancyPrimarySalary(vacancy: VacancyResponse) {
+  if (vacancy.salary_max !== null) {
+    return Number(vacancy.salary_max)
+  }
+
+  if (vacancy.salary_min !== null) {
+    return Number(vacancy.salary_min)
+  }
+
+  return null
+}
+
 export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
   const session = getAuthSession()
   const isBusiness = role === "business"
   const [candidateSearch, setCandidateSearch] = useState("")
+  const [candidateEmploymentTypeFilter, setCandidateEmploymentTypeFilter] = useState<
+    "all" | VacancyResponse["employment_type"]
+  >("all")
+  const [candidateWorkModeFilter, setCandidateWorkModeFilter] =
+    useState<VacancyWorkMode>("all")
+  const [candidateMinimumSalary, setCandidateMinimumSalary] = useState("")
+  const [candidateShowAppliedOnly, setCandidateShowAppliedOnly] = useState(false)
   const [selectedVacancyId, setSelectedVacancyId] = useState<number | null>(null)
   const [vacancyToClose, setVacancyToClose] = useState<VacancyResponse | null>(null)
   const [vacancyToApply, setVacancyToApply] = useState<VacancyResponse | null>(null)
@@ -271,20 +306,58 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
     : "Explore as vagas publicadas e acompanhe os detalhes da oportunidade selecionada."
   const profileLabel = isBusiness ? "Perfil da empresa" : "Perfil profissional"
   const progress = isBusiness ? 85 : 78
-  const candidateName = session?.user?.name?.trim() || "Candidato autenticado"
+  const candidateName = session?.user?.name?.trim() || "Candidato"
   const candidateEmail = session?.user?.email?.trim() || ""
 
-  const filteredPublishedVacancies = publishedVacancies.filter((vacancy) => {
-    const search = candidateSearch.trim().toLowerCase()
+  const normalizedCandidateSearch = candidateSearch.trim().toLowerCase()
+  const candidateMinimumSalaryValue = candidateMinimumSalary.trim()
+    ? Number(candidateMinimumSalary)
+    : null
 
-    if (!search) {
-      return true
+  const filteredPublishedVacancies = publishedVacancies.filter((vacancy) => {
+    if (normalizedCandidateSearch) {
+      const searchableContent = [
+        vacancy.title,
+        vacancy.location,
+        getVacancyCompanyName(vacancy),
+        vacancy.description,
+        vacancy.requirements,
+      ]
+        .join(" ")
+        .toLowerCase()
+
+      if (!searchableContent.includes(normalizedCandidateSearch)) {
+        return false
+      }
     }
 
-    return [vacancy.title, vacancy.location, getVacancyCompanyName(vacancy)]
-      .join(" ")
-      .toLowerCase()
-      .includes(search)
+    if (
+      candidateEmploymentTypeFilter !== "all" &&
+      vacancy.employment_type !== candidateEmploymentTypeFilter
+    ) {
+      return false
+    }
+
+    if (
+      candidateWorkModeFilter !== "all" &&
+      getVacancyWorkMode(vacancy.location) !== candidateWorkModeFilter
+    ) {
+      return false
+    }
+
+    if (candidateShowAppliedOnly && !vacancy.has_applied) {
+      return false
+    }
+
+    if (candidateMinimumSalaryValue !== null) {
+      const primarySalary = getVacancyPrimarySalary(vacancy)
+
+      if (primarySalary === null || primarySalary < candidateMinimumSalaryValue) {
+        return false
+      }
+    }
+
+    return true
   })
 
   const selectedPublishedVacancy = filteredPublishedVacancies.find(
@@ -292,7 +365,15 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
   ) ?? filteredPublishedVacancies[0] ?? null
 
   function handlePlaceholderClick(label: string) {
-    toast.warning(`${label} ainda nao foi implementado.`)
+    toast.warning(`${label} ainda não foi implementado.`)
+  }
+
+  function handleClearCandidateFilters() {
+    setCandidateSearch("")
+    setCandidateEmploymentTypeFilter("all")
+    setCandidateWorkModeFilter("all")
+    setCandidateMinimumSalary("")
+    setCandidateShowAppliedOnly(false)
   }
 
   function handleOpenApplyModal(vacancy: VacancyResponse) {
@@ -387,7 +468,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
       return (
         <article className="rounded-2xl border border-destructive/30 bg-card p-6 shadow-sm">
           <p className="text-sm text-destructive">
-            Nao foi possivel carregar as vagas publicadas da empresa.
+            Não foi possível carregar as vagas publicadas da empresa.
           </p>
         </article>
       )
@@ -398,7 +479,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
         <article className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
           <h3 className="text-lg font-semibold">Nenhuma vaga publicada ainda</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Assim que voce publicar uma vaga, ela aparecera aqui no dashboard.
+            Assim que você publicar uma vaga, ela aparecerá aqui no dashboard.
           </p>
         </article>
       )
@@ -470,7 +551,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
     if (hasBusinessApplicantsError) {
       return (
         <p className="text-sm text-destructive">
-          Nao foi possivel carregar os candidatos das suas vagas.
+          Não foi possível carregar os candidatos das suas vagas.
         </p>
       )
     }
@@ -478,7 +559,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
     if (businessApplicants.length === 0) {
       return (
         <p className="text-sm text-muted-foreground">
-          Ainda nao ha candidatos nas vagas publicadas.
+          Ainda não há candidatos nas vagas publicadas.
         </p>
       )
     }
@@ -520,7 +601,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
       return (
         <section className="rounded-3xl border border-destructive/30 bg-card p-6 shadow-sm">
           <p className="text-sm text-destructive">
-            Nao foi possivel carregar os detalhes das vagas publicadas.
+            Não foi possível carregar os detalhes das vagas publicadas.
           </p>
         </section>
       )
@@ -642,44 +723,95 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
         description={pageDescription}
         breadcrumb="Vagas"
       >
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
-          <section className="space-y-5">
-            <div className="rounded-3xl border border-border/80 bg-card p-5 shadow-sm">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-                    Vagas publicadas
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Encontre oportunidades abertas e selecione uma vaga para ver os detalhes.
-                  </p>
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  Mostrando {filteredPublishedVacancies.length} resultado(s)
-                </span>
+        <div className="space-y-6">
+          <section className="rounded-3xl border border-border/80 bg-card p-5 shadow-sm">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                  Vagas publicadas
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Encontre oportunidades abertas e selecione uma vaga para ver os detalhes.
+                </p>
               </div>
-
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                <div className="relative flex-1">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={candidateSearch}
-                    onChange={(event) => setCandidateSearch(event.target.value)}
-                    placeholder="Buscar vagas, empresas ou localidade"
-                    className="h-12 rounded-2xl border border-border/80 bg-background pl-10 pr-4"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handlePlaceholderClick("Filtros avancados")}
-                  className="rounded-2xl border border-border/80 bg-background px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                >
-                  Filtrar
-                </button>
-              </div>
+              <span className="text-sm text-muted-foreground">
+                Mostrando {filteredPublishedVacancies.length} resultado(s)
+              </span>
             </div>
 
-            <div className="space-y-4">
+            <div className="mt-5 grid gap-3 xl:grid-cols-[minmax(0,1.6fr)_repeat(2,minmax(180px,1fr))]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={candidateSearch}
+                  onChange={(event) => setCandidateSearch(event.target.value)}
+                  placeholder="Buscar vagas, empresas, requisitos ou localidade"
+                  className="h-12 rounded-2xl border border-border/80 bg-background pl-10 pr-4"
+                />
+              </div>
+
+              <select
+                value={candidateEmploymentTypeFilter}
+                onChange={(event) =>
+                  setCandidateEmploymentTypeFilter(
+                    event.target.value as "all" | VacancyResponse["employment_type"]
+                  )
+                }
+                className="h-12 rounded-2xl border border-border/80 bg-background px-4 text-sm text-foreground outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="all">Todos os tipos</option>
+                <option value="clt">CLT</option>
+                <option value="pj">PJ</option>
+                <option value="estagio">Estágio</option>
+                <option value="temporario">Temporário</option>
+              </select>
+
+              <select
+                value={candidateWorkModeFilter}
+                onChange={(event) =>
+                  setCandidateWorkModeFilter(event.target.value as VacancyWorkMode)
+                }
+                className="h-12 rounded-2xl border border-border/80 bg-background px-4 text-sm text-foreground outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="all">Todas as modalidades</option>
+                <option value="remote">Remoto</option>
+                <option value="hybrid">Híbrido</option>
+                <option value="onsite">Presencial</option>
+              </select>
+            </div>
+
+            <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(320px,1.2fr)_auto] xl:items-center">
+              <Input
+                type="number"
+                min="0"
+                value={candidateMinimumSalary}
+                onChange={(event) => setCandidateMinimumSalary(event.target.value)}
+                placeholder="Salário mínimo desejado"
+                className="h-12 rounded-2xl border border-border/80 bg-background px-4"
+              />
+
+              <label className="inline-flex min-h-12 items-center gap-3 rounded-2xl border border-border/80 bg-background px-4 py-3 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={candidateShowAppliedOnly}
+                  onChange={(event) => setCandidateShowAppliedOnly(event.target.checked)}
+                  className="size-4 rounded border-border text-primary focus:ring-primary"
+                />
+                Mostrar apenas vagas já candidatadas
+              </label>
+
+              <button
+                type="button"
+                onClick={handleClearCandidateFilters}
+                className="rounded-2xl border border-border/80 bg-background px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Limpar filtros
+              </button>
+            </div>
+          </section>
+
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
+            <section className="space-y-4">
               {isLoadingPublishedVacancies ? (
                 <article className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm">
                   <p className="text-sm text-muted-foreground">Carregando vagas publicadas...</p>
@@ -689,7 +821,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
               {!isLoadingPublishedVacancies && hasPublishedVacanciesError ? (
                 <article className="rounded-3xl border border-destructive/30 bg-card p-6 shadow-sm">
                   <p className="text-sm text-destructive">
-                    Nao foi possivel carregar as vagas publicadas no momento.
+                    Não foi possível carregar as vagas publicadas no momento.
                   </p>
                 </article>
               ) : null}
@@ -776,7 +908,6 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                   </button>
                 )
               })}
-            </div>
           </section>
 
           <div className="space-y-4">
@@ -784,6 +915,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
             <div className="xl:hidden">{renderCandidateVacancyDetails()}</div>
           </div>
         </div>
+      </div>
 
         {vacancyToApply ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8">
@@ -815,7 +947,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
               <div className="space-y-8 p-6">
                 <section>
                   <h3 className="text-2xl font-semibold text-foreground">
-                    Informacoes Pessoais
+                    Informações Pessoais
                   </h3>
                   <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div className="flex flex-col gap-2">
@@ -871,9 +1003,9 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                 <div className="border-t border-border/80" />
 
                 <section>
-                  <h3 className="text-2xl font-semibold text-foreground">Carta de Apresentacao</h3>
+                  <h3 className="text-2xl font-semibold text-foreground">Carta de Apresentação</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Por que voce e o candidato ideal para esta vaga?
+                    Por que você é o candidato ideal para esta vaga?
                   </p>
                   <div className="mt-4 flex flex-col gap-2">
                     <textarea
@@ -954,7 +1086,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                 Vagas publicadas
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Acompanhe as vagas criadas pela sua empresa e o status de publicacao.
+                Acompanhe as vagas criadas pela sua empresa e o status de publicação.
               </p>
             </div>
             <button
@@ -1032,7 +1164,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
             </h3>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               A vaga <span className="font-medium text-foreground">{vacancyToClose.title}</span>{" "}
-              deixara de aparecer para candidatos. Deseja continuar?
+              deixará de aparecer para candidatos. Deseja continuar?
             </p>
 
             <div className="mt-6 flex justify-end gap-3">

@@ -52,6 +52,26 @@ export function persistAuthSession(session: AuthTokenResponse) {
   window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload))
 }
 
+export function updateAuthSessionUser(user: NonNullable<AuthTokenResponse["user"]>) {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  const currentSession = readStoredAuthSession()
+
+  if (!currentSession) {
+    return
+  }
+
+  const payload: StoredAuthSession = {
+    ...currentSession,
+    user,
+    stored_at: Date.now(),
+  }
+
+  window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload))
+}
+
 export function removeAuthToken() {
   if (typeof window === "undefined") {
     return
