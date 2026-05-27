@@ -1118,41 +1118,6 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
               Ver todos os candidatos
             </Link>
           </section>
-
-          <section className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <UserRound className="size-4 text-muted-foreground" />
-              <h2 className="text-lg font-semibold tracking-tight">
-                {profileLabel}
-              </h2>
-            </div>
-
-            <div className="mb-6 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Preenchimento</span>
-                <span className="font-medium text-primary">{progress}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handlePlaceholderClick("Editar perfil")}
-              className={cn(
-                buttonVariants({
-                  variant: "outline",
-                  className: "w-full rounded-xl normal-case tracking-normal",
-                })
-              )}
-            >
-              Editar perfil
-            </button>
-          </section>
         </aside>
       </div>
 

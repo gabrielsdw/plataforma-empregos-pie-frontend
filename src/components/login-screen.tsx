@@ -86,18 +86,6 @@ export function LoginScreen() {
                 ITBA Empregos
               </span>
             </Link>
-
-            <nav className="hidden md:flex items-center gap-2">
-              {navigationItems.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  {item}
-                </button>
-              ))}
-            </nav>
           </div>
 
           <div className="flex items-center gap-2">
@@ -250,12 +238,6 @@ export function LoginScreen() {
                       >
                         Senha
                       </Label>
-                      <Link
-                        href="/"
-                        className="text-xs font-medium text-primary hover:underline"
-                      >
-                        Esqueceu a senha?
-                      </Link>
                     </div>
                     <div className="relative">
                       <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
