@@ -323,9 +323,9 @@ export function useCreateVacancyMutation(
   return useMutation({
     ...options,
     mutationFn: createVacancyRequest,
-    async onSuccess(data, variables, context) {
+    async onSuccess(data, variables, onMutateResult, context) {
       await invalidateVacancyQueries(queryClient, data.id)
-      await options?.onSuccess?.(data, variables, context)
+      await options?.onSuccess?.(data, variables, onMutateResult, context)
     },
   })
 }
@@ -338,9 +338,9 @@ export function useUpdateVacancyMutation(
   return useMutation({
     ...options,
     mutationFn: updateVacancyRequest,
-    async onSuccess(data, variables, context) {
+    async onSuccess(data, variables, onMutateResult, context) {
       await invalidateVacancyQueries(queryClient, data.id)
-      await options?.onSuccess?.(data, variables, context)
+      await options?.onSuccess?.(data, variables, onMutateResult, context)
     },
   })
 }
@@ -353,9 +353,9 @@ export function useCloseVacancyMutation(
   return useMutation({
     ...options,
     mutationFn: closeVacancyRequest,
-    async onSuccess(data, variables, context) {
+    async onSuccess(data, variables, onMutateResult, context) {
       await invalidateVacancyQueries(queryClient, data.id)
-      await options?.onSuccess?.(data, variables, context)
+      await options?.onSuccess?.(data, variables, onMutateResult, context)
     },
   })
 }
@@ -372,9 +372,9 @@ export function useApplyToVacancyMutation(
   return useMutation({
     ...options,
     mutationFn: applyToVacancyRequest,
-    async onSuccess(data, variables, context) {
+    async onSuccess(data, variables, onMutateResult, context) {
       await invalidateVacancyQueries(queryClient, variables.vacancyId)
-      await options?.onSuccess?.(data, variables, context)
+      await options?.onSuccess?.(data, variables, onMutateResult, context)
     },
   })
 }
