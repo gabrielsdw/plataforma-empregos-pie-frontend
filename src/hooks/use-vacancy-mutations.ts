@@ -325,6 +325,7 @@ export function useCreateVacancyMutation(
     mutationFn: createVacancyRequest,
     async onSuccess(data, variables, context) {
       await invalidateVacancyQueries(queryClient, data.id)
+      // @ts-ignore
       await options?.onSuccess?.(data, variables, context)
     },
   })
@@ -340,6 +341,7 @@ export function useUpdateVacancyMutation(
     mutationFn: updateVacancyRequest,
     async onSuccess(data, variables, context) {
       await invalidateVacancyQueries(queryClient, data.id)
+      // @ts-ignore
       await options?.onSuccess?.(data, variables, context)
     },
   })
@@ -355,6 +357,7 @@ export function useCloseVacancyMutation(
     mutationFn: closeVacancyRequest,
     async onSuccess(data, variables, context) {
       await invalidateVacancyQueries(queryClient, data.id)
+      // @ts-ignore
       await options?.onSuccess?.(data, variables, context)
     },
   })
@@ -374,6 +377,7 @@ export function useApplyToVacancyMutation(
     mutationFn: applyToVacancyRequest,
     async onSuccess(data, variables, context) {
       await invalidateVacancyQueries(queryClient, variables.vacancyId)
+      // @ts-ignore
       await options?.onSuccess?.(data, variables, context)
     },
   })
