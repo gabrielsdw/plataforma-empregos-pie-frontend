@@ -1,13 +1,15 @@
 "use client"
 
-import { useState } from "react"
-import { Building2, FileText, Globe, Mail, Phone, Save, UserRound } from "lucide-react"
+import { useRef, useState } from "react"
+import { Building2, FileText, Globe, Mail, Phone, Save, Upload, UserRound } from "lucide-react"
 import { toast } from "sonner"
 
 import { PrivateShell } from "@/components/private-shell"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { getApiErrorMessage } from "@/hooks/use-api-error"
+import { useUpdateProfileMutation, type AuthUser } from "@/hooks/use-auth-mutations"
 import { getAuthSession, updateAuthSessionUser } from "@/lib/auth-token"
 
 type ProfileScreenProps = {
@@ -41,31 +43,68 @@ function buildInitials(name: string) {
     .join("")
 }
 
+function isValidResume(file: File) {
+  const validTypes = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ]
+
+  if (!validTypes.includes(file.type)) {
+    return "Envie um arquivo PDF, DOC ou DOCX."
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    return "O currículo deve ter no máximo 5MB."
+  }
+
+  return null
+}
+
+function buildUpdatedUser(currentUser: AuthUser, updates: AuthUser) {
+  return {
+    ...currentUser,
+    ...updates,
+  }
+}
+
 export function ProfileScreen({ role }: ProfileScreenProps) {
   const session = getAuthSession()
-  const user = session?.user
+  const sessionUser = session?.user
   const isBusiness = role === "business"
+  const resumeInputRef = useRef<HTMLInputElement | null>(null)
+  const updateProfileMutation = useUpdateProfileMutation()
 
-  const [name, setName] = useState(user?.name ?? "")
-  const [email, setEmail] = useState(user?.email ?? "")
-  const [phone, setPhone] = useState(user?.phone ?? "")
-  const [companyName, setCompanyName] = useState(user?.company_name ?? user?.name ?? "")
-  const [website, setWebsite] = useState(user?.website ?? "")
-  const [isSaving, setIsSaving] = useState(false)
+  const [currentUser, setCurrentUser] = useState<AuthUser>(sessionUser ?? {})
+  const [name, setName] = useState(sessionUser?.name ?? "")
+  const [email, setEmail] = useState(sessionUser?.email ?? "")
+  const [phone, setPhone] = useState(sessionUser?.phone ?? "")
+  const [companyName, setCompanyName] = useState(sessionUser?.company_name ?? sessionUser?.name ?? "")
+  const [website, setWebsite] = useState(sessionUser?.website ?? "")
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [resumeLabel, setResumeLabel] = useState<string>(sessionUser?.resume_original_name ?? "")
 
   const displayName = isBusiness ? companyName.trim() || name.trim() : name.trim()
   const title = isBusiness ? "Perfil da empresa" : "Meu perfil"
   const description = isBusiness
     ? "Atualize as informações principais da sua empresa para manter seu painel consistente."
-    : "Mantenha seus dados de contato atualizados para facilitar o retorno das empresas."
+    : "Mantenha seus dados de contato e currículo atualizados para facilitar o retorno das empresas."
 
-  function resetForm() {
-    setName(user?.name ?? "")
-    setEmail(user?.email ?? "")
-    setPhone(user?.phone ?? "")
-    setCompanyName(user?.company_name ?? user?.name ?? "")
-    setWebsite(user?.website ?? "")
+  function syncUserState(updatedUser: AuthUser) {
+    setCurrentUser(updatedUser)
+    setName(updatedUser.name ?? "")
+    setEmail(updatedUser.email ?? "")
+    setPhone(updatedUser.phone ?? "")
+    setCompanyName(updatedUser.company_name ?? updatedUser.name ?? "")
+    setWebsite(updatedUser.website ?? "")
+    setResumeFile(null)
+    setResumeLabel(updatedUser.resume_original_name ?? "")
+
+    if (resumeInputRef.current) {
+      resumeInputRef.current.value = ""
+    }
   }
+
 
   function validateForm() {
     if (isBusiness) {
@@ -81,7 +120,7 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
         try {
           new URL(website.trim())
         } catch {
-          return "Informe um site valido."
+          return "Informe um site válido."
         }
       }
 
@@ -97,13 +136,40 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
     }
 
     if (!/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(phone.trim())) {
-      return "Informe um celular valido."
+      return "Informe um celular válido."
+    }
+
+    if (resumeFile) {
+      return isValidResume(resumeFile)
     }
 
     return null
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleResumeChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null
+
+    if (!file) {
+      setResumeFile(null)
+      setResumeLabel(currentUser.resume_original_name ?? "")
+      return
+    }
+
+    const validationMessage = isValidResume(file)
+
+    if (validationMessage) {
+      toast.error(validationMessage)
+      event.target.value = ""
+      setResumeFile(null)
+      setResumeLabel(currentUser.resume_original_name ?? "")
+      return
+    }
+
+    setResumeFile(file)
+    setResumeLabel(file.name)
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const errorMessage = validateForm()
@@ -113,30 +179,36 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
       return
     }
 
-    if (!user) {
+    if (!sessionUser) {
       toast.error("Sessão não encontrada.")
       return
     }
 
-    setIsSaving(true)
+    try {
+      const updatedUser = await updateProfileMutation.mutateAsync(
+        isBusiness
+          ? {
+              role: "business",
+              companyName,
+              email,
+              website,
+            }
+          : {
+              role: "candidate",
+              name,
+              email,
+              phone,
+              resume: resumeFile,
+            }
+      )
 
-    updateAuthSessionUser({
-      ...user,
-      name: isBusiness ? companyName.trim() : name.trim(),
-      email: email.trim(),
-      phone: isBusiness ? user.phone ?? null : phone.trim(),
-      company_name: isBusiness ? companyName.trim() : user.company_name ?? null,
-      website: isBusiness ? website.trim() || null : user.website ?? null,
-    })
-
-    setName(isBusiness ? companyName.trim() : name.trim())
-    setEmail(email.trim())
-    setPhone(isBusiness ? user.phone ?? "" : phone.trim())
-    setCompanyName(isBusiness ? companyName.trim() : companyName)
-    setWebsite(isBusiness ? website.trim() : website)
-    setIsSaving(false)
-
-    toast.success("Perfil atualizado com sucesso.")
+      const mergedUser = buildUpdatedUser(currentUser, updatedUser)
+      updateAuthSessionUser(mergedUser)
+      syncUserState(mergedUser)
+      toast.success("Perfil atualizado com sucesso.")
+    } catch (error) {
+      toast.error(getApiErrorMessage(error))
+    }
   }
 
   return (
@@ -205,15 +277,43 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
                   />
                 </div>
               )}
+
+              {!isBusiness ? (
+                <div className="md:col-span-2">
+                  <Label htmlFor="resume">Currículo</Label>
+                  <div className="rounded-xl border border-dashed border-border/80 bg-muted/30 p-4">
+                    <input
+                      ref={resumeInputRef}
+                      id="resume"
+                      name="resume"
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      className="sr-only"
+                      onChange={handleResumeChange}
+                    />
+                    <label
+                      htmlFor="resume"
+                      className="flex cursor-pointer items-center gap-3 text-sm text-foreground"
+                    >
+                      <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <Upload className="size-4" />
+                      </span>
+                      <span>
+                        {resumeLabel || "Selecione um novo currículo"}
+                      </span>
+                    </label>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Formatos aceitos: PDF, DOC ou DOCX com até 5MB.
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button type="submit" disabled={isSaving}>
+              <Button type="submit" disabled={updateProfileMutation.isPending}>
                 <Save className="size-4" />
-                {isSaving ? "Salvando..." : "Salvar perfil"}
-              </Button>
-              <Button type="button" variant="outline" onClick={resetForm} disabled={isSaving}>
-                Restaurar dados
+                {updateProfileMutation.isPending ? "Salvando..." : "Salvar perfil"}
               </Button>
             </div>
           </form>
@@ -273,8 +373,18 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
                   Currículo cadastrado
                 </div>
                 <p className="mt-2 break-all leading-6">
-                  {user?.resume_path || "Nenhum currículo foi enviado no cadastro."}
+                  {currentUser.resume_original_name || "Nenhum currículo foi enviado no cadastro."}
                 </p>
+                {currentUser.resume_url ? (
+                  <a
+                    href={currentUser.resume_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-flex text-primary hover:underline"
+                  >
+                    Abrir currículo salvo
+                  </a>
+                ) : null}
               </div>
             )}
           </section>

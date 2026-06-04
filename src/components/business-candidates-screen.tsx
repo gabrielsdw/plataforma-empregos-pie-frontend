@@ -1,9 +1,14 @@
 "use client"
 
-import { BriefcaseBusiness, ExternalLink, Mail, Phone, UserRound } from "lucide-react"
+import { BriefcaseBusiness, Download, ExternalLink, Mail, Phone, UserRound } from "lucide-react"
+import { toast } from "sonner"
 
 import { PrivateShell } from "@/components/private-shell"
-import { useBusinessApplicantsQuery } from "@/hooks/use-vacancy-mutations"
+import { getApiErrorMessage } from "@/hooks/use-api-error"
+import {
+  useBusinessApplicantsQuery,
+  useDownloadApplicantResumeMutation,
+} from "@/hooks/use-vacancy-mutations"
 
 function buildInitials(name: string) {
   return name
@@ -34,6 +39,27 @@ export function BusinessCandidatesScreen() {
     isLoading,
     isError,
   } = useBusinessApplicantsQuery()
+  const downloadResumeMutation = useDownloadApplicantResumeMutation()
+
+  async function handleResumeDownload(applicationId: number) {
+    try {
+      const { blob, fileName } = await downloadResumeMutation.mutateAsync({
+        applicationId,
+        fallbackFileName: "curriculo",
+      })
+
+      const objectUrl = window.URL.createObjectURL(blob)
+      const anchor = document.createElement("a")
+      anchor.href = objectUrl
+      anchor.download = fileName
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      window.URL.revokeObjectURL(objectUrl)
+    } catch (error) {
+      toast.error(getApiErrorMessage(error))
+    }
+  }
 
   return (
     <PrivateShell
@@ -119,9 +145,20 @@ export function BusinessCandidatesScreen() {
                         </a>
                       ) : null}
                       {candidate?.resume_path ? (
+                        <button
+                          type="button"
+                          onClick={() => handleResumeDownload(application.id)}
+                          disabled={downloadResumeMutation.isPending}
+                          className="inline-flex items-center gap-2 text-left text-primary hover:underline disabled:opacity-60"
+                        >
+                          <Download className="size-4" />
+                          {downloadResumeMutation.isPending ? "Baixando currículo..." : "Ver currículo"}
+                        </button>
+                      ) : null}
+                      {!candidate?.resume_path ? (
                         <span className="inline-flex items-center gap-2 text-muted-foreground">
                           <UserRound className="size-4" />
-                          Currículo enviado no cadastro
+                          Currículo não enviado
                         </span>
                       ) : null}
                     </div>

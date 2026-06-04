@@ -45,6 +45,11 @@ export type ApplyToVacancyInput = {
   coverLetter: string
 }
 
+export type DownloadApplicantResumeInput = {
+  applicationId: number
+  fallbackFileName?: string | null
+}
+
 export type VacancyBusiness = {
   id: number
   name: string | null
@@ -75,6 +80,8 @@ export type VacancyApplicant = {
   email: string
   phone: string | null
   resume_path: string | null
+  resume_original_name?: string | null
+  resume_url?: string | null
 }
 
 export type VacancyApplicationResponse = {
@@ -160,6 +167,26 @@ async function applyToVacancyRequest(input: ApplyToVacancyInput) {
   )
 
   return response.data.data
+}
+
+async function downloadApplicantResumeRequest(input: DownloadApplicantResumeInput) {
+  const response = await api.get<Blob>(
+    `/vacancies/applications/${input.applicationId}/resume`,
+    {
+      responseType: "blob",
+    }
+  )
+
+  const contentDisposition = response.headers["content-disposition"]
+  const fileNameMatch = contentDisposition?.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i)
+  const fileName = decodeURIComponent(
+    fileNameMatch?.[1] || fileNameMatch?.[2] || input.fallbackFileName || "curriculo"
+  )
+
+  return {
+    blob: response.data,
+    fileName,
+  }
 }
 
 async function listBusinessVacanciesRequest() {
@@ -376,5 +403,18 @@ export function useApplyToVacancyMutation(
       await invalidateVacancyQueries(queryClient, variables.vacancyId)
       await options?.onSuccess?.(data, variables, onMutateResult, context)
     },
+  })
+}
+
+export function useDownloadApplicantResumeMutation(
+  options?: UseMutationOptions<
+    { blob: Blob; fileName: string },
+    unknown,
+    DownloadApplicantResumeInput
+  >
+) {
+  return useMutation({
+    mutationFn: downloadApplicantResumeRequest,
+    ...options,
   })
 }

@@ -19,20 +19,24 @@ type ApiEnvelope<T> = {
   errors?: Record<string, string[] | string> | null
 }
 
+export type AuthUser = {
+  id?: string | number
+  name?: string
+  email?: string
+  phone?: string | null
+  role?: "candidate" | "business"
+  company_name?: string | null
+  website?: string | null
+  resume_path?: string | null
+  resume_original_name?: string | null
+  resume_url?: string | null
+}
+
 export type AuthTokenResponse = {
   access_token: string
   token_type: "bearer"
   expires_in: number
-  user?: {
-    id?: string | number
-    name?: string
-    email?: string
-    phone?: string | null
-    role?: "candidate" | "business"
-    company_name?: string | null
-    website?: string | null
-    resume_path?: string | null
-  }
+  user?: AuthUser
 }
 
 export type SeekerSignupInput = z.infer<typeof seekerSignupSchema>
@@ -41,10 +45,30 @@ export type SeekerSignupResponse = AuthTokenResponse
 export type BusinessSignupInput = z.infer<typeof businessSignupSchema>
 export type BusinessSignupResponse = AuthTokenResponse
 
+export type UpdateCandidateProfileInput = {
+  role: "candidate"
+  name: string
+  email: string
+  phone: string
+  resume?: File | null
+}
+
+export type UpdateBusinessProfileInput = {
+  role: "business"
+  companyName: string
+  email: string
+  website?: string | null
+}
+
+export type UpdateProfileInput =
+  | UpdateCandidateProfileInput
+  | UpdateBusinessProfileInput
+
 const authRoutes = {
   login: "/auth/login",
   seekerSignup: "/auth/register/seeker",
   businessSignup: "/auth/register/business",
+  profile: "/auth/profile",
 } as const
 
 async function loginRequest(input: LoginInput) {
@@ -108,6 +132,39 @@ async function businessSignupRequest(input: BusinessSignupInput) {
   return response.data.data
 }
 
+async function updateProfileRequest(input: UpdateProfileInput) {
+  const formData = new FormData()
+
+  if (input.role === "business") {
+    formData.append("company_name", input.companyName.trim())
+    formData.append("email", input.email.trim())
+
+    if (input.website?.trim()) {
+      formData.append("website", input.website.trim())
+    }
+  } else {
+    formData.append("name", input.name.trim())
+    formData.append("email", input.email.trim())
+    formData.append("phone", input.phone.trim())
+
+    if (input.resume) {
+      formData.append("resume", input.resume)
+    }
+  }
+
+  const response = await api.post<ApiEnvelope<AuthUser>>(
+    authRoutes.profile,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  )
+
+  return response.data.data
+}
+
 export function useLoginMutation(
   options?: UseMutationOptions<AuthTokenResponse, unknown, LoginInput>
 ) {
@@ -135,6 +192,15 @@ export function useBusinessSignupMutation(
 ) {
   return useMutation({
     mutationFn: businessSignupRequest,
+    ...options,
+  })
+}
+
+export function useUpdateProfileMutation(
+  options?: UseMutationOptions<AuthUser, unknown, UpdateProfileInput>
+) {
+  return useMutation({
+    mutationFn: updateProfileRequest,
     ...options,
   })
 }

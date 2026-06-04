@@ -145,13 +145,13 @@ export function SignupForm({ variant = "seeker", className, ...props }: SignupFo
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="cv">Currículo (PDF)</Label>
+                <Label htmlFor="cv">Currículo (PDF, DOC ou DOCX)</Label>
                 <div className="rounded-none border border-dashed border-border bg-muted/30 px-4 py-6 text-center">
                   <input
                     id="cv"
                     name="cv"
                     type="file"
-                    accept="application/pdf"
+                    accept=".pdf,.doc,.docx"
                     className="sr-only"
                   />
                   <label
@@ -160,6 +160,9 @@ export function SignupForm({ variant = "seeker", className, ...props }: SignupFo
                   >
                     Upload CV
                   </label>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Arquivo opcional de até 5MB no fluxo principal de cadastro.
+                  </p>
                 </div>
               </div>
             </>

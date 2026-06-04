@@ -31,6 +31,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ITBA Empregos - Conexão Profissional",
   description: "Plataforma de empregos para conectar talentos e empresas.",
+  icons: {
+    icon: "/images/IFTM.png",
+    shortcut: "/images/IFTM.png",
+    apple: "/images/IFTM.png",
+  },
 }
 
 export default function RootLayout({

@@ -1,12 +1,14 @@
 "use client"
 
-import { type FormEvent } from "react"
+import { useState, type ChangeEvent, type FormEvent } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   BadgeCheck,
   Building2,
+  Eye,
+  EyeOff,
   Globe,
   LockKeyhole,
   Mail,
@@ -23,12 +25,40 @@ import {
 import { getApiErrorMessage } from "@/hooks/use-api-error"
 import { useBusinessSignupMutation } from "@/hooks/use-auth-mutations"
 
+function formatCnpj(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 14)
+
+  if (digits.length <= 2) {
+    return digits
+  }
+
+  if (digits.length <= 5) {
+    return `${digits.slice(0, 2)}.${digits.slice(2)}`
+  }
+
+  if (digits.length <= 8) {
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`
+  }
+
+  if (digits.length <= 12) {
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`
+  }
+
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`
+}
+
 const previewImage =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuAhOiJOjPzQ3Ths5GJ6BU2gsae3IuJ-Vfc7XY30EbGY1Nbyl64XT5s-y2kIkTQTMIqkUaVJjb-XzrWEkOsErGk4I2hSINdPxon3Pq0NA7_ZtZVgERL8CX0gpTMad0Uqv9ec04xytbJlHs-J0ssehzhRW-AAlLBXd1jDx47TlWdpMmisrVEhfEJX4mdA9UKuD9ZPBZgQSNYtMNJMvlZfjYJjwyynAkbPa9a8UYO-YISF0Df8M3T7XkDS1ShWfv0ZbT3ZMVDO8XzZcyFa"
 
 export function BusinessSignupScreen() {
   const signupMutation = useBusinessSignupMutation()
   const router = useRouter()
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const [isPasswordConfirmationVisible, setIsPasswordConfirmationVisible] = useState(false)
+
+  function handleCnpjChange(event: ChangeEvent<HTMLInputElement>) {
+    event.currentTarget.value = formatCnpj(event.currentTarget.value)
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -131,7 +161,10 @@ export function BusinessSignupScreen() {
                         id="cnpj"
                         name="cnpj"
                         type="text"
+                        inputMode="numeric"
                         placeholder="00.000.000/0000-00"
+                        maxLength={18}
+                        onChange={handleCnpjChange}
                         className="h-12 rounded-lg border border-border/80 bg-background pl-10 pr-4 text-sm shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0"
                         required
                       />
@@ -190,12 +223,20 @@ export function BusinessSignupScreen() {
                       <Input
                         id="password"
                         name="password"
-                        type="password"
+                        type={isPasswordVisible ? "text" : "password"}
                         autoComplete="new-password"
                         placeholder="••••••••"
-                        className="h-12 rounded-lg border border-border/80 bg-background pl-10 pr-4 text-sm shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0"
+                        className="h-12 rounded-lg border border-border/80 bg-background pl-10 pr-12 text-sm shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setIsPasswordVisible((current) => !current)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label={isPasswordVisible ? "Ocultar senha" : "Mostrar senha"}
+                      >
+                        {isPasswordVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
                     </div>
                   </div>
 
@@ -211,12 +252,20 @@ export function BusinessSignupScreen() {
                       <Input
                         id="confirm-password"
                         name="confirm-password"
-                        type="password"
+                        type={isPasswordConfirmationVisible ? "text" : "password"}
                         autoComplete="new-password"
                         placeholder="••••••••"
-                        className="h-12 rounded-lg border border-border/80 bg-background pl-10 pr-4 text-sm shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0"
+                        className="h-12 rounded-lg border border-border/80 bg-background pl-10 pr-12 text-sm shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setIsPasswordConfirmationVisible((current) => !current)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label={isPasswordConfirmationVisible ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
+                      >
+                        {isPasswordConfirmationVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
                     </div>
                   </div>
                 </div>

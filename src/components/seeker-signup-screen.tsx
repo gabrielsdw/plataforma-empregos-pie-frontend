@@ -1,10 +1,13 @@
 "use client"
 
-import { type ChangeEvent, type FormEvent } from "react"
+import { useState, type ChangeEvent, type FormEvent } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   ArrowRight,
+  CheckCircle2,
+  Eye,
+  EyeOff,
   FileUp,
   LockKeyhole,
   Mail,
@@ -44,9 +47,18 @@ function formatPhone(value: string) {
 export function SeekerSignupScreen() {
   const signupMutation = useSeekerSignupMutation()
   const router = useRouter()
+  const [selectedResumeName, setSelectedResumeName] = useState("")
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const [isPasswordConfirmationVisible, setIsPasswordConfirmationVisible] = useState(false)
+  const hasSelectedResume = selectedResumeName.length > 0
 
   function handlePhoneChange(event: ChangeEvent<HTMLInputElement>) {
     event.currentTarget.value = formatPhone(event.currentTarget.value)
+  }
+
+  function handleResumeChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0]
+    setSelectedResumeName(file?.name ?? "")
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -74,6 +86,7 @@ export function SeekerSignupScreen() {
 
       toast.success("Cadastro realizado com sucesso.")
       form.reset()
+      setSelectedResumeName("")
       router.push("/dashboard/seeker")
       router.refresh()
     } catch (error) {
@@ -185,12 +198,20 @@ export function SeekerSignupScreen() {
                       <Input
                         id="senha"
                         name="senha"
-                        type="password"
+                        type={isPasswordVisible ? "text" : "password"}
                         autoComplete="new-password"
                         placeholder="••••••••"
-                        className="h-12 rounded-lg border border-border/80 bg-background pl-10 pr-4 text-sm shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0"
+                        className="h-12 rounded-lg border border-border/80 bg-background pl-10 pr-12 text-sm shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setIsPasswordVisible((current) => !current)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label={isPasswordVisible ? "Ocultar senha" : "Mostrar senha"}
+                      >
+                        {isPasswordVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
                     </div>
                   </div>
 
@@ -206,12 +227,20 @@ export function SeekerSignupScreen() {
                       <Input
                         id="confirmar-senha"
                         name="confirmar-senha"
-                        type="password"
+                        type={isPasswordConfirmationVisible ? "text" : "password"}
                         autoComplete="new-password"
                         placeholder="••••••••"
-                        className="h-12 rounded-lg border border-border/80 bg-background pl-10 pr-4 text-sm shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0"
+                        className="h-12 rounded-lg border border-border/80 bg-background pl-10 pr-12 text-sm shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setIsPasswordConfirmationVisible((current) => !current)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label={isPasswordConfirmationVisible ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
+                      >
+                        {isPasswordConfirmationVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
                     </div>
                   </div>
 
@@ -219,27 +248,38 @@ export function SeekerSignupScreen() {
                     <Label className="mb-2 block text-sm font-medium normal-case tracking-normal text-foreground">
                       Currículo (Opcional agora)
                     </Label>
-                    <div className="rounded-lg border-2 border-dashed border-border/80 bg-muted/30 px-6 py-6 text-center transition-colors hover:border-primary hover:bg-muted/40">
+                    <div
+                      className={`rounded-lg border-2 border-dashed px-6 py-6 text-center transition-colors ${
+                        hasSelectedResume
+                          ? "border-emerald-500/60 bg-emerald-500/10"
+                          : "border-border/80 bg-muted/30 hover:border-primary hover:bg-muted/40"
+                      }`}
+                    >
                       <input
                         id="file-upload"
                         name="file-upload"
                         type="file"
                         accept=".pdf,.doc,.docx"
                         className="sr-only"
+                        onChange={handleResumeChange}
                       />
                       <label
                         htmlFor="file-upload"
                         className="flex cursor-pointer flex-col items-center gap-2"
                       >
-                        <FileUp className="size-8 text-muted-foreground transition-colors" />
-                        <span className="text-sm font-medium text-primary">
-                          Faça upload de um arquivo
+                        {hasSelectedResume ? (
+                          <CheckCircle2 className="size-8 text-emerald-600" />
+                        ) : (
+                          <FileUp className="size-8 text-muted-foreground transition-colors" />
+                        )}
+                        <span className={`text-sm font-medium ${hasSelectedResume ? "text-emerald-700" : "text-primary"}`}>
+                          {selectedResumeName || "Faça upload de um arquivo"}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          ou arraste e solte
+                          {hasSelectedResume ? "Currículo anexado com sucesso" : "ou arraste e solte"}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          PDF, DOC, DOCX até 5MB
+                          {hasSelectedResume ? "Clique para trocar o arquivo selecionado" : "PDF, DOC, DOCX até 5MB"}
                         </span>
                       </label>
                     </div>
