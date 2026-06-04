@@ -136,7 +136,7 @@ export function PrivateShell({
   }
 
   return (
-    <div className="flex min-h-svh bg-background text-foreground">
+    <div className="flex min-h-svh overflow-x-clip bg-background text-foreground">
       <aside className="hidden h-screen w-64 shrink-0 border-r border-border/80 bg-card lg:sticky lg:top-0 lg:flex lg:flex-col">
         <div className="p-6">
           <Link href="/" className="text-xl font-extrabold tracking-tight text-primary">
@@ -183,14 +183,14 @@ export function PrivateShell({
       </aside>
 
       <div className="flex min-h-svh flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border/80 bg-card px-6 backdrop-blur lg:px-8">
-          <h2 className="text-sm text-muted-foreground">
+        <header className="sticky top-0 z-40 flex min-h-16 flex-wrap items-center justify-between gap-2 border-b border-border/80 bg-card px-3 py-3 backdrop-blur sm:px-6 lg:px-8">
+          <h2 className="min-w-0 text-xs leading-5 text-muted-foreground sm:text-sm">
             {roleLabel} / <span className="font-semibold text-foreground">{breadcrumb}</span>
           </h2>
 
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3 self-start sm:self-auto">
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-semibold leading-none">{userName}</p>
+              <p className="truncate text-sm font-semibold leading-none">{userName}</p>
               <p className="mt-1 text-xs leading-none text-muted-foreground">
                 {role === "business" ? "Empresa" : "Candidato"}
               </p>
@@ -201,18 +201,18 @@ export function PrivateShell({
           </div>
         </header>
 
-        <main className="flex-grow bg-background p-6 lg:p-8">
+        <main className="flex-grow bg-background p-3 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-6xl">
-            <div className="mb-8">
-              <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-4xl">
                 {title}
               </h1>
-              <p className="mt-2 max-w-3xl text-lg text-muted-foreground">
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:text-lg">
                 {description}
               </p>
             </div>
 
-            <div className="mb-6 flex gap-2 overflow-x-auto lg:hidden">
+            <div className="mb-6 flex gap-2 overflow-x-auto pb-1 lg:hidden">
               {navItems.map((item) => {
                 const Icon = item.icon
                 const isActive = item.match(pathname)
@@ -222,7 +222,7 @@ export function PrivateShell({
                     key={item.label}
                     href={item.href}
                     className={cn(
-                      "flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm",
+                      "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-2 text-xs sm:px-4 sm:text-sm",
                       isActive
                         ? "border-primary/20 bg-primary/10 text-primary"
                         : "border-border bg-card text-muted-foreground"

@@ -74,9 +74,9 @@ export function NewJobScreen() {
       description="Preencha as informações detalhadas para atrair os melhores talentos para sua empresa."
       breadcrumb="Publicar Vaga"
     >
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 sm:gap-8 lg:grid-cols-12">
         <Card className="rounded-2xl border border-border/80 bg-card py-0 shadow-sm lg:col-span-8">
-          <CardContent className="p-6 lg:p-8">
+          <CardContent className="p-4 sm:p-6 lg:p-8">
             <form className="space-y-8" onSubmit={handleSubmit}>
               <section className="space-y-6">
                 <div className="border-b border-border/80 pb-3">
@@ -97,7 +97,7 @@ export function NewJobScreen() {
                       id="title"
                       name="title"
                       placeholder="Ex: Desenvolvedor Front-end Senior"
-                      className="h-12 rounded-lg border border-border/80 bg-background px-4 py-3"
+                      className="h-12 w-full rounded-lg border border-border/80 bg-background px-4 py-3"
                       required
                     />
                   </div>
@@ -138,7 +138,7 @@ export function NewJobScreen() {
                         id="location"
                         name="location"
                         placeholder="Ex: Sao Paulo, SP (ou Remoto)"
-                        className="h-12 rounded-lg border border-border/80 bg-background px-4 py-3"
+                        className="h-12 w-full rounded-lg border border-border/80 bg-background px-4 py-3"
                         required
                       />
                     </div>
@@ -158,7 +158,7 @@ export function NewJobScreen() {
                         type="number"
                         min="0"
                         placeholder="Ex: 5000"
-                        className="h-12 rounded-lg border border-border/80 bg-background px-4 py-3"
+                        className="h-12 w-full rounded-lg border border-border/80 bg-background px-4 py-3"
                       />
                     </div>
 
@@ -175,7 +175,7 @@ export function NewJobScreen() {
                         type="number"
                         min="0"
                         placeholder="Ex: 8000"
-                        className="h-12 rounded-lg border border-border/80 bg-background px-4 py-3"
+                        className="h-12 w-full rounded-lg border border-border/80 bg-background px-4 py-3"
                       />
                     </div>
                   </div>
@@ -226,13 +226,13 @@ export function NewJobScreen() {
                 </div>
               </section>
 
-              <div className="flex flex-col justify-end gap-4 border-t border-border/80 pt-6 sm:flex-row">
+              <div className="flex flex-col justify-end gap-3 border-t border-border/80 pt-5 sm:flex-row sm:gap-4 sm:pt-6">
                 <Button
                   type="submit"
                   variant="outline"
                   disabled={isPending}
                   onClick={() => setSubmitIntent("draft")}
-                  className="rounded-lg normal-case tracking-normal"
+                  className="w-full rounded-lg normal-case tracking-normal sm:w-auto"
                 >
                   {isPending && submitIntent === "draft"
                     ? "Salvando..."
@@ -242,7 +242,7 @@ export function NewJobScreen() {
                   type="submit"
                   disabled={isPending}
                   onClick={() => setSubmitIntent("published")}
-                  className="rounded-lg normal-case tracking-normal"
+                  className="w-full rounded-lg normal-case tracking-normal sm:w-auto"
                 >
                   {isPending && submitIntent === "published"
                     ? "Publicando..."
@@ -255,7 +255,7 @@ export function NewJobScreen() {
 
         <div className="space-y-6 lg:col-span-4">
           <Card className="rounded-2xl border border-border/80 bg-muted/50 py-0 shadow-sm">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="mb-4 flex items-center gap-2">
                 <Lightbulb className="size-5 text-primary" />
                 <h3 className="font-heading text-xl font-semibold tracking-tight">

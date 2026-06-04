@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   ArrowRight,
+  Building2,
   CheckCircle2,
   Eye,
   EyeOff,
@@ -96,19 +97,25 @@ export function SeekerSignupScreen() {
 
   return (
     <main className="flex min-h-svh flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-      <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <div className="w-full max-w-[600px]">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-semibold tracking-tight text-primary sm:text-[30px]">
-              ITBA Empregos
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-base">
-              O Arquiteto Confiável do seu futuro profissional.
-            </p>
-          </div>
+      <header className="w-full border-b border-border/70 bg-background">
+        <div className="mx-auto flex min-h-16 w-full max-w-[1280px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold tracking-tight text-primary">
+            <Building2 className="size-5" />
+            <span>ITBA Empregos</span>
+          </Link>
+          <Link
+            href="/"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+          >
+            Voltar ao site
+          </Link>
+        </div>
+      </header>
 
+      <div className="flex flex-1 items-center justify-center px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+        <div className="w-full max-w-[600px]">
           <section className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
-            <div className="px-6 py-6 sm:px-8 sm:py-8">
+            <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
               <div className="mb-8">
                 <h2 className="text-2xl font-semibold tracking-tight text-foreground">
                   Cadastro de Candidato
@@ -249,7 +256,7 @@ export function SeekerSignupScreen() {
                       Currículo (Opcional agora)
                     </Label>
                     <div
-                      className={`rounded-lg border-2 border-dashed px-6 py-6 text-center transition-colors ${
+                      className={`rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors sm:px-6 ${
                         hasSelectedResume
                           ? "border-emerald-500/60 bg-emerald-500/10"
                           : "border-border/80 bg-muted/30 hover:border-primary hover:bg-muted/40"

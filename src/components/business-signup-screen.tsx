@@ -95,8 +95,8 @@ export function BusinessSignupScreen() {
   return (
     <main className="flex min-h-svh flex-col bg-background text-foreground">
       <header className="w-full border-b border-border/70 bg-background">
-        <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center justify-between px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-primary">
+        <div className="mx-auto flex min-h-16 w-full max-w-[1280px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold tracking-tight text-primary">
             <Building2 className="size-5" />
             <span>ITBA Empregos</span>
           </Link>
@@ -109,10 +109,10 @@ export function BusinessSignupScreen() {
         </div>
       </header>
 
-      <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="flex flex-1 items-center justify-center px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <div className="flex w-full max-w-[1280px] items-center justify-center lg:justify-start">
           <section className="w-full max-w-md overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
-            <div className="relative overflow-hidden px-8 py-8">
+            <div className="relative overflow-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
               <div className="absolute right-0 top-0 -mr-16 -mt-16 size-32 rounded-full bg-primary/10 blur-2xl" />
               <div className="absolute bottom-0 left-0 -ml-16 -mb-16 size-32 rounded-full bg-secondary/10 blur-2xl" />
 

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import {
   ArrowRight,
   BriefcaseBusiness,
+  Building2,
   Eye,
   EyeOff,
   LockKeyhole,
@@ -76,25 +77,25 @@ export function LoginScreen() {
   return (
     <div className="min-h-svh bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center justify-between px-6 lg:px-8">
-          <div className="flex items-center gap-8">
+        <div className="mx-auto flex min-h-16 w-full max-w-[1280px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-8">
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
-                IT
+              <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Building2 className="size-4.5" />
               </span>
-              <span className="text-lg font-semibold tracking-tight">
+              <span className="text-base font-semibold tracking-tight sm:text-lg">
                 ITBA Empregos
               </span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <Link
               href="/"
               className={buttonVariants({
                 variant: "ghost",
                 size: "sm",
-                className: "normal-case tracking-normal text-sm",
+                className: "flex-1 normal-case tracking-normal text-sm sm:flex-none",
               })}
             >
               Entrar
@@ -103,7 +104,7 @@ export function LoginScreen() {
               href={isCandidate ? "/signup/seeker" : "/signup/business"}
               className={buttonVariants({
                 size: "sm",
-                className: "normal-case tracking-normal text-sm",
+                className: "flex-1 normal-case tracking-normal text-sm sm:flex-none",
               })}
             >
               Cadastrar
@@ -112,7 +113,7 @@ export function LoginScreen() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[1280px] items-center px-6 py-10 md:min-h-[calc(100svh-4rem)] md:px-8 md:py-16">
+      <main className="mx-auto flex w-full max-w-[1280px] items-center px-4 py-8 sm:px-6 md:min-h-[calc(100svh-4rem)] md:px-8 md:py-16">
         <div className="grid w-full grid-cols-1 items-center gap-10 md:grid-cols-12 md:gap-16">
           <section className="md:col-span-7">
             <div className="flex max-w-2xl flex-col gap-6">
@@ -122,7 +123,7 @@ export function LoginScreen() {
               </div>
 
               <div className="space-y-4">
-                <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+                <h1 className="max-w-xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
                   O Arquiteto Confiável para suas Necessidades de Contratação.
                 </h1>
                 <p className="max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">

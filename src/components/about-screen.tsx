@@ -25,14 +25,14 @@ export function AboutScreen({ role }: AboutScreenProps) {
       breadcrumb="Sobre"
     >
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-3xl border border-border/80 bg-card p-8 shadow-sm">
+        <section className="rounded-3xl border border-border/80 bg-card p-5 shadow-sm sm:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
               <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                 <GraduationCap className="size-4" />
                 Campus IFTM Ituiutaba
               </span>
-              <h2 className="mt-5 font-heading text-3xl font-bold tracking-tight text-foreground">
+              <h2 className="mt-5 font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 Plataforma desenvolvida no IFTM para aproximar talentos e oportunidades de Ituiutaba - MG.
               </h2>
               <p className="mt-4 text-base leading-7 text-muted-foreground">
@@ -76,7 +76,7 @@ export function AboutScreen({ role }: AboutScreenProps) {
           </article>
         </section>
 
-        <section className="rounded-3xl border border-border/80 bg-card p-8 shadow-sm xl:col-span-2">
+        <section className="rounded-3xl border border-border/80 bg-card p-5 shadow-sm sm:p-8 xl:col-span-2">
           <div className="grid gap-6 lg:grid-cols-3">
             <article className="rounded-2xl border border-border/70 bg-muted/20 p-5">
               <div className="flex items-center gap-3 text-foreground">

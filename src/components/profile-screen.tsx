@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Building2, FileText, Globe, Mail, Phone, Save, Upload, UserRound } from "lucide-react"
+import { Building2, Download, FileText, Globe, Mail, Phone, Save, Upload, UserRound } from "lucide-react"
 import { toast } from "sonner"
 
 import { PrivateShell } from "@/components/private-shell"
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getApiErrorMessage } from "@/hooks/use-api-error"
+import { api } from "@/app/axios/instance"
 import { useUpdateProfileMutation, type AuthUser } from "@/hooks/use-auth-mutations"
 import { getAuthSession, updateAuthSessionUser } from "@/lib/auth-token"
 
@@ -83,6 +84,7 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
   const [website, setWebsite] = useState(sessionUser?.website ?? "")
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [resumeLabel, setResumeLabel] = useState<string>(sessionUser?.resume_original_name ?? "")
+  const [isDownloadingResume, setIsDownloadingResume] = useState(false)
 
   const displayName = isBusiness ? companyName.trim() || name.trim() : name.trim()
   const title = isBusiness ? "Perfil da empresa" : "Meu perfil"
@@ -144,6 +146,43 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
     }
 
     return null
+  }
+
+  async function handleSavedResumeDownload() {
+    if (!currentUser.resume_url) {
+      toast.error("Currículo não disponível para download.")
+      return
+    }
+
+    try {
+      setIsDownloadingResume(true)
+
+      const response = await api.get<Blob>("/auth/resume", {
+        responseType: "blob",
+      })
+
+      const contentDisposition = response.headers["content-disposition"]
+      const fileNameMatch = contentDisposition?.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i)
+      const fileName = decodeURIComponent(
+        fileNameMatch?.[1] ||
+          fileNameMatch?.[2] ||
+          currentUser.resume_original_name ||
+          "curriculo"
+      )
+
+      const objectUrl = window.URL.createObjectURL(response.data)
+      const anchor = document.createElement("a")
+      anchor.href = objectUrl
+      anchor.download = fileName
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      window.URL.revokeObjectURL(objectUrl)
+    } catch (error) {
+      toast.error(getApiErrorMessage(error))
+    } finally {
+      setIsDownloadingResume(false)
+    }
   }
 
   function handleResumeChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -218,8 +257,8 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
       description={description}
       breadcrumb="Perfil"
     >
-      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <section className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+      <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+        <section className="rounded-2xl border border-border/80 bg-card p-3 shadow-sm sm:p-6">
           <form className="space-y-8" onSubmit={handleSubmit}>
             <div className="grid gap-6 md:grid-cols-2">
               {isBusiness ? (
@@ -281,7 +320,7 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
               {!isBusiness ? (
                 <div className="md:col-span-2">
                   <Label htmlFor="resume">Currículo</Label>
-                  <div className="rounded-xl border border-dashed border-border/80 bg-muted/30 p-4">
+                  <div className="rounded-xl border border-dashed border-border/80 bg-muted/30 p-3 sm:p-4">
                     <input
                       ref={resumeInputRef}
                       id="resume"
@@ -293,7 +332,7 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
                     />
                     <label
                       htmlFor="resume"
-                      className="flex cursor-pointer items-center gap-3 text-sm text-foreground"
+                      className="flex cursor-pointer flex-col items-start gap-3 text-sm text-foreground sm:flex-row sm:items-center"
                     >
                       <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                         <Upload className="size-4" />
@@ -320,8 +359,8 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
         </section>
 
         <aside className="space-y-6">
-          <section className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
-            <div className="flex items-center gap-4">
+          <section className="rounded-2xl border border-border/80 bg-card p-3 shadow-sm sm:p-6">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
               <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
                 {buildInitials(displayName || email || "Perfil")}
               </div>
@@ -347,18 +386,18 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
               {isBusiness ? (
                 <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-4 py-3">
                   <Globe className="size-4" />
-                  <span>{website || "Website não informado"}</span>
+                  <span className="break-all">{website || "Website não informado"}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-4 py-3">
                   <Phone className="size-4" />
-                  <span>{phone || "Celular não informado"}</span>
+                  <span className="break-all">{phone || "Celular não informado"}</span>
                 </div>
               )}
             </div>
           </section>
 
-          <section className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+          <section className="rounded-2xl border border-border/80 bg-card p-3 shadow-sm sm:p-6">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               {isBusiness ? "Presenca digital" : "Documentos"}
             </h3>
@@ -376,14 +415,15 @@ export function ProfileScreen({ role }: ProfileScreenProps) {
                   {currentUser.resume_original_name || "Nenhum currículo foi enviado no cadastro."}
                 </p>
                 {currentUser.resume_url ? (
-                  <a
-                    href={currentUser.resume_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-3 inline-flex text-primary hover:underline"
+                  <button
+                    type="button"
+                    onClick={handleSavedResumeDownload}
+                    disabled={isDownloadingResume}
+                    className="mt-3 inline-flex items-center gap-2 text-primary hover:underline disabled:opacity-60"
                   >
-                    Abrir currículo salvo
-                  </a>
+                    <Download className="size-4" />
+                    {isDownloadingResume ? "Baixando currículo..." : "Abrir currículo salvo"}
+                  </button>
                 ) : null}
               </div>
             )}

@@ -69,26 +69,26 @@ export function BusinessCandidatesScreen() {
       breadcrumb="Candidatos"
     >
       <div className="space-y-5">
-        <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
+        <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm">
           <p className="text-sm text-muted-foreground">
             Total de candidaturas: <span className="font-semibold text-foreground">{applications.length}</span>
           </p>
         </div>
 
         {isLoading ? (
-          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+          <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm">
             <p className="text-sm text-muted-foreground">Carregando candidatos...</p>
           </div>
         ) : null}
 
         {isError ? (
-          <div className="rounded-2xl border border-destructive/30 bg-card p-6 shadow-sm">
+          <div className="rounded-2xl border border-destructive/30 bg-card p-4 shadow-sm">
             <p className="text-sm text-destructive">Não foi possível carregar os candidatos.</p>
           </div>
         ) : null}
 
         {!isLoading && !isError && applications.length === 0 ? (
-          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+          <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm">
             <p className="text-sm text-muted-foreground">Nenhum candidato encontrado até o momento.</p>
           </div>
         ) : null}
@@ -102,7 +102,7 @@ export function BusinessCandidatesScreen() {
               return (
                 <article
                   key={application.id}
-                  className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm"
+                  className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-6"
                 >
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex items-start gap-4">
@@ -116,15 +116,15 @@ export function BusinessCandidatesScreen() {
                         </div>
 
                         <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                          <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
+                          <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-muted px-3 py-1.5 break-all">
                             <BriefcaseBusiness className="size-4" />
                             {vacancy?.title ?? "Vaga"}
                           </span>
-                          <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
+                          <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-muted px-3 py-1.5 break-all">
                             <Mail className="size-4" />
                             {candidate?.email ?? "Sem e-mail"}
                           </span>
-                          <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
+                          <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-muted px-3 py-1.5 break-all">
                             <Phone className="size-4" />
                             {application.phone || candidate?.phone || "Sem telefone"}
                           </span>
@@ -132,7 +132,7 @@ export function BusinessCandidatesScreen() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 text-sm">
+                    <div className="flex flex-col gap-2 text-sm sm:items-end">
                       {application.portfolio_url ? (
                         <a
                           href={application.portfolio_url}

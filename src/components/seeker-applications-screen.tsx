@@ -42,26 +42,26 @@ export function SeekerApplicationsScreen() {
       breadcrumb="Minhas candidaturas"
     >
       <div className="space-y-5">
-        <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
+        <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm">
           <p className="text-sm text-muted-foreground">
             Total de candidaturas enviadas: <span className="font-semibold text-foreground">{applications.length}</span>
           </p>
         </div>
 
         {isLoading ? (
-          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+          <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm">
             <p className="text-sm text-muted-foreground">Carregando suas candidaturas...</p>
           </div>
         ) : null}
 
         {isError ? (
-          <div className="rounded-2xl border border-destructive/30 bg-card p-6 shadow-sm">
+          <div className="rounded-2xl border border-destructive/30 bg-card p-4 shadow-sm">
             <p className="text-sm text-destructive">Não foi possível carregar suas candidaturas.</p>
           </div>
         ) : null}
 
         {!isLoading && !isError && applications.length === 0 ? (
-          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+          <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm">
             <p className="text-sm text-muted-foreground">Você ainda não enviou nenhuma candidatura.</p>
           </div>
         ) : null}
@@ -70,7 +70,7 @@ export function SeekerApplicationsScreen() {
           ? applications.map((application) => (
               <article
                 key={application.id}
-                className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm"
+                className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-6"
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
@@ -78,15 +78,15 @@ export function SeekerApplicationsScreen() {
                       {application.vacancy?.title ?? "Vaga"}
                     </h2>
                     <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
+                      <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-muted px-3 py-1.5 break-all">
                         <BriefcaseBusiness className="size-4" />
                         {getCompanyName(application)}
                       </span>
-                      <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
+                      <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-muted px-3 py-1.5 break-all">
                         <MapPin className="size-4" />
                         {application.vacancy?.location ?? "Localidade não informada"}
                       </span>
-                      <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
+                      <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-muted px-3 py-1.5 break-all">
                         <Phone className="size-4" />
                         {application.phone || "Telefone não informado"}
                       </span>

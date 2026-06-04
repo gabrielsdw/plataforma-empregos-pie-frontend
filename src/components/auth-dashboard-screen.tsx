@@ -458,7 +458,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
   function renderBusinessVacancies() {
     if (isLoadingBusinessVacancies) {
       return (
-        <article className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+        <article className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-6">
           <p className="text-sm text-muted-foreground">Carregando vagas publicadas...</p>
         </article>
       )
@@ -466,7 +466,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
 
     if (hasBusinessVacanciesError) {
       return (
-        <article className="rounded-2xl border border-destructive/30 bg-card p-6 shadow-sm">
+        <article className="rounded-2xl border border-destructive/30 bg-card p-4 shadow-sm sm:p-6">
           <p className="text-sm text-destructive">
             Não foi possível carregar as vagas publicadas da empresa.
           </p>
@@ -476,7 +476,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
 
     if (businessVacancies.length === 0) {
       return (
-        <article className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+        <article className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-6">
           <h3 className="text-lg font-semibold">Nenhuma vaga publicada ainda</h3>
           <p className="mt-2 text-sm text-muted-foreground">
             Assim que você publicar uma vaga, ela aparecerá aqui no dashboard.
@@ -492,12 +492,12 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
       return (
         <article
           key={vacancy.id}
-          className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm transition-shadow hover:shadow-md"
+          className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:p-6"
         >
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0">
               <h3 className="text-lg font-semibold">{vacancy.title}</h3>
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <div className="mt-3 flex flex-wrap gap-2 text-sm text-muted-foreground">
                 <span>{vacancy.location}</span>
                 <span>{employmentTypeLabels[vacancy.employment_type]}</span>
                 <span>{formatSalaryRange(vacancy)}</span>
@@ -512,7 +512,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
               </div>
             </div>
 
-            <div className="flex gap-5 text-sm font-medium">
+            <div className="flex flex-wrap gap-4 text-sm font-medium">
               <Link
                 href={`/dashboard/business/jobs/${vacancy.id}/edit`}
                 className="text-primary transition-opacity hover:opacity-80"
@@ -570,14 +570,14 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
       const vacancyTitle = application.vacancy?.title ?? "Vaga"
 
       return (
-        <div key={application.id} className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div key={application.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-muted-foreground">
               {buildInitials(candidateNameLocal)}
             </div>
-            <div>
-              <p className="text-sm font-medium">{candidateNameLocal}</p>
-              <p className="text-xs text-muted-foreground">{vacancyTitle}</p>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{candidateNameLocal}</p>
+              <p className="truncate text-xs text-muted-foreground">{vacancyTitle}</p>
             </div>
           </div>
           <span className="text-[11px] text-muted-foreground">
@@ -623,14 +623,14 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
 
     return (
       <section className="overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm xl:sticky xl:top-24">
-        <div className="border-b border-border/80 bg-muted/30 p-6">
-          <div className="mb-5 flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <Building2 className="size-8" />
+        <div className="border-b border-border/80 bg-muted/30 p-4 sm:p-6">
+          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary sm:size-16">
+                <Building2 className="size-6 sm:size-8" />
               </div>
-              <div>
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              <div className="min-w-0">
+                <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                   {selectedPublishedVacancy.title}
                 </h2>
                 <p className="mt-1 text-sm font-medium text-muted-foreground">
@@ -639,7 +639,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {selectedPublishedVacancy.has_applied ? (
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                   Candidatura enviada
@@ -658,7 +658,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
               <MapPin className="size-4" />
               {selectedPublishedVacancy.location}
             </span>
-            <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-2 text-primary">
+            <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-2 text-foreground">
               <WalletCards className="size-4" />
               {formatSalaryRange(selectedPublishedVacancy)}
             </span>
@@ -684,7 +684,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
           </button>
         </div>
 
-        <div className="space-y-6 p-6">
+        <div className="space-y-5 p-4 sm:space-y-6 sm:p-6">
           <section>
             <h3 className="text-lg font-semibold text-foreground">Sobre a vaga</h3>
             <div className="mt-3 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -724,10 +724,10 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
         breadcrumb="Vagas"
       >
         <div className="space-y-6">
-          <section className="rounded-3xl border border-border/80 bg-card p-5 shadow-sm">
+          <section className="rounded-3xl border border-border/80 bg-card p-4 shadow-sm sm:p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                   Vagas publicadas
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -790,7 +790,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                 className="h-12 rounded-2xl border border-border/80 bg-background px-4"
               />
 
-              <label className="inline-flex min-h-12 items-center gap-3 rounded-2xl border border-border/80 bg-background px-4 py-3 text-sm text-foreground">
+              <label className="inline-flex min-h-12 items-start gap-3 rounded-2xl border border-border/80 bg-background px-4 py-3 text-sm text-foreground sm:items-center">
                 <input
                   type="checkbox"
                   checked={candidateShowAppliedOnly}
@@ -850,18 +850,13 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                     type="button"
                     onClick={() => setSelectedVacancyId(vacancy.id)}
                     className={cn(
-                      "relative block w-full overflow-hidden rounded-3xl border bg-card p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
-                      isActive
-                        ? "border-primary ring-2 ring-primary/15"
-                        : "border-border/80"
+                      "relative block w-full overflow-hidden rounded-3xl border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-6",
+                      isActive ? "border-primary/80" : "border-border/80"
                     )}
                   >
-                    {isActive ? (
-                      <span className="absolute inset-y-0 left-0 w-1 rounded-l-3xl bg-primary" />
-                    ) : null}
 
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
                         <h3 className="text-xl font-semibold text-foreground">
                           {vacancy.title}
                         </h3>
@@ -877,7 +872,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         {vacancy.has_applied ? (
                           <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                             Candidatado
@@ -892,7 +887,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                     </div>
 
                     <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
-                      <span className="inline-flex items-center gap-2 text-primary">
+                      <span className="inline-flex items-center gap-2 text-foreground">
                         <WalletCards className="size-4" />
                         {formatSalaryRange(vacancy)}
                       </span>
@@ -920,7 +915,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
         {vacancyToApply ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8">
             <div className="max-h-full w-full max-w-3xl overflow-auto rounded-2xl border border-border/80 bg-card shadow-xl">
-              <div className="border-b border-border/80 px-6 py-5">
+              <div className="border-b border-border/80 px-4 py-5 sm:px-6">
                 <button
                   type="button"
                   onClick={handleCloseApplyModal}
@@ -929,7 +924,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                   <ArrowRight className="size-4 rotate-180" />
                   Voltar para a vaga
                 </button>
-                <h2 className="text-3xl font-bold tracking-tight text-foreground">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                   {vacancyToApply.title}
                 </h2>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -944,9 +939,9 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                 </div>
               </div>
 
-              <div className="space-y-8 p-6">
+              <div className="space-y-8 p-4 sm:p-6">
                 <section>
-                  <h3 className="text-2xl font-semibold text-foreground">
+                  <h3 className="text-xl font-semibold text-foreground sm:text-2xl">
                     Informações Pessoais
                   </h3>
                   <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -1003,7 +998,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                 <div className="border-t border-border/80" />
 
                 <section>
-                  <h3 className="text-2xl font-semibold text-foreground">Carta de Apresentação</h3>
+                  <h3 className="text-xl font-semibold text-foreground sm:text-2xl">Carta de Apresentação</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Por que você é o candidato ideal para esta vaga?
                   </p>
@@ -1020,7 +1015,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                 </section>
               </div>
 
-              <div className="flex items-center justify-end gap-4 border-t border-border/80 px-6 py-5">
+              <div className="flex flex-col-reverse gap-3 border-t border-border/80 px-4 py-5 sm:flex-row sm:items-center sm:justify-end sm:px-6">
                 <button
                   type="button"
                   onClick={handleCloseApplyModal}
@@ -1033,7 +1028,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                   type="button"
                   onClick={handleSubmitApplication}
                   disabled={applyToVacancyMutation.isPending}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 >
                   {applyToVacancyMutation.isPending ? "Enviando..." : "Enviar Candidatura"}
                   <Send className="size-4" />
@@ -1053,16 +1048,16 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
       description={pageDescription}
       breadcrumb="Dashboard"
     >
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => {
           const Icon = metric.icon
 
           return (
             <article
               key={metric.label}
-              className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm"
+              className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-6"
             >
-              <div className="mb-5 flex items-center justify-between">
+              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm font-medium text-muted-foreground">
                   {metric.label}
                 </span>
@@ -1070,7 +1065,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                   <Icon className="size-5" />
                 </span>
               </div>
-              <p className="text-3xl font-semibold tracking-tight">
+              <p className="text-2xl font-semibold tracking-tight sm:text-3xl">
                 {metric.value}
               </p>
             </article>
@@ -1080,7 +1075,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
 
       <div className="mt-8 grid grid-cols-1 gap-8 xl:grid-cols-3">
         <section className="xl:col-span-2">
-          <div className="mb-5 flex items-center justify-between">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold tracking-tight">
                 Vagas publicadas
@@ -1102,8 +1097,8 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
         </section>
 
         <aside className="space-y-8">
-          <section className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
-            <div className="mb-5 flex items-center justify-between">
+          <section className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-6">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-lg font-semibold tracking-tight">
                 Candidaturas recentes
               </h2>
@@ -1123,7 +1118,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
 
       {vacancyToClose ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-border/80 bg-card p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-2xl border border-border/80 bg-card p-5 shadow-xl sm:p-6">
             <h3 className="text-lg font-semibold text-foreground">
               Confirmar encerramento
             </h3>
@@ -1132,7 +1127,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
               deixará de aparecer para candidatos. Deseja continuar?
             </p>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 disabled={closeVacancyMutation.isPending}
