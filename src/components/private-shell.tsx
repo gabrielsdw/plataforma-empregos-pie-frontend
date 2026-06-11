@@ -137,7 +137,7 @@ export function PrivateShell({
 
   return (
     <div className="flex min-h-svh overflow-x-clip bg-background text-foreground">
-      <aside className="hidden h-screen w-64 shrink-0 border-r border-border/80 bg-card lg:sticky lg:top-0 lg:flex lg:flex-col">
+      <aside className="hidden w-64 shrink-0 self-stretch border-r border-border/80 bg-card lg:flex lg:min-h-svh lg:flex-col">
         <div className="p-6">
           <Link href="/" className="text-xl font-extrabold tracking-tight text-primary">
             ITBA Empregos
@@ -157,14 +157,14 @@ export function PrivateShell({
                 key={item.label}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-4 py-3 transition-colors",
+                  "flex items-center gap-3 rounded-lg px-4 py-3.5 transition-colors",
                   isActive
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
-                <Icon className="size-5" />
-                <span className="text-sm font-medium">{item.label}</span>
+                <Icon className="size-5.5 shrink-0" />
+                <span className="text-[15px] font-medium">{item.label}</span>
               </Link>
             )
           })}
@@ -222,13 +222,13 @@ export function PrivateShell({
                     key={item.label}
                     href={item.href}
                     className={cn(
-                      "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-2 text-xs sm:px-4 sm:text-sm",
+                      "flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full border px-3.5 py-2.5 text-sm sm:px-4 sm:text-[15px]",
                       isActive
                         ? "border-primary/20 bg-primary/10 text-primary"
                         : "border-border bg-card text-muted-foreground"
                     )}
                   >
-                    <Icon className="size-4" />
+                    <Icon className="size-4.5 shrink-0" />
                     {item.label}
                   </Link>
                 )

@@ -230,6 +230,7 @@ function getVacancyExcerpt(value: string) {
 }
 
 type VacancyWorkMode = "all" | "remote" | "hybrid" | "onsite"
+const VACANCIES_PER_PAGE = 3
 
 function getVacancyWorkMode(location: string): Exclude<VacancyWorkMode, "all"> {
   const normalized = location.toLowerCase()
@@ -268,6 +269,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
     useState<VacancyWorkMode>("all")
   const [candidateMinimumSalary, setCandidateMinimumSalary] = useState("")
   const [candidateShowAppliedOnly, setCandidateShowAppliedOnly] = useState(false)
+  const [candidatePage, setCandidatePage] = useState(1)
   const [selectedVacancyId, setSelectedVacancyId] = useState<number | null>(null)
   const [vacancyToClose, setVacancyToClose] = useState<VacancyResponse | null>(null)
   const [vacancyToApply, setVacancyToApply] = useState<VacancyResponse | null>(null)
@@ -360,9 +362,19 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
     return true
   })
 
-  const selectedPublishedVacancy = filteredPublishedVacancies.find(
+  const totalCandidatePages = Math.max(
+    1,
+    Math.ceil(filteredPublishedVacancies.length / VACANCIES_PER_PAGE)
+  )
+  const safeCandidatePage = Math.min(candidatePage, totalCandidatePages)
+  const paginatedPublishedVacancies = filteredPublishedVacancies.slice(
+    (safeCandidatePage - 1) * VACANCIES_PER_PAGE,
+    safeCandidatePage * VACANCIES_PER_PAGE
+  )
+
+  const selectedPublishedVacancy = paginatedPublishedVacancies.find(
     (vacancy) => vacancy.id === selectedVacancyId
-  ) ?? filteredPublishedVacancies[0] ?? null
+  ) ?? paginatedPublishedVacancies[0] ?? null
 
   function handlePlaceholderClick(label: string) {
     toast.warning(`${label} ainda não foi implementado.`)
@@ -374,6 +386,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
     setCandidateWorkModeFilter("all")
     setCandidateMinimumSalary("")
     setCandidateShowAppliedOnly(false)
+    setCandidatePage(1)
   }
 
   function handleOpenApplyModal(vacancy: VacancyResponse) {
@@ -744,7 +757,10 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={candidateSearch}
-                  onChange={(event) => setCandidateSearch(event.target.value)}
+                  onChange={(event) => {
+                    setCandidateSearch(event.target.value)
+                    setCandidatePage(1)
+                  }}
                   placeholder="Buscar vagas, empresas, requisitos ou localidade"
                   className="h-12 rounded-2xl border border-border/80 bg-background pl-10 pr-4"
                 />
@@ -752,11 +768,12 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
 
               <select
                 value={candidateEmploymentTypeFilter}
-                onChange={(event) =>
+                onChange={(event) => {
                   setCandidateEmploymentTypeFilter(
                     event.target.value as "all" | VacancyResponse["employment_type"]
                   )
-                }
+                  setCandidatePage(1)
+                }}
                 className="h-12 rounded-2xl border border-border/80 bg-background px-4 text-sm text-foreground outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
               >
                 <option value="all">Todos os tipos</option>
@@ -768,9 +785,10 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
 
               <select
                 value={candidateWorkModeFilter}
-                onChange={(event) =>
+                onChange={(event) => {
                   setCandidateWorkModeFilter(event.target.value as VacancyWorkMode)
-                }
+                  setCandidatePage(1)
+                }}
                 className="h-12 rounded-2xl border border-border/80 bg-background px-4 text-sm text-foreground outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
               >
                 <option value="all">Todas as modalidades</option>
@@ -785,7 +803,10 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                 type="number"
                 min="0"
                 value={candidateMinimumSalary}
-                onChange={(event) => setCandidateMinimumSalary(event.target.value)}
+                onChange={(event) => {
+                  setCandidateMinimumSalary(event.target.value)
+                  setCandidatePage(1)
+                }}
                 placeholder="Salário mínimo desejado"
                 className="h-12 rounded-2xl border border-border/80 bg-background px-4"
               />
@@ -794,7 +815,10 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                 <input
                   type="checkbox"
                   checked={candidateShowAppliedOnly}
-                  onChange={(event) => setCandidateShowAppliedOnly(event.target.checked)}
+                  onChange={(event) => {
+                    setCandidateShowAppliedOnly(event.target.checked)
+                    setCandidatePage(1)
+                  }}
                   className="size-4 rounded border-border text-primary focus:ring-primary"
                 />
                 Mostrar apenas vagas já candidatadas
@@ -812,6 +836,48 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
 
           <div className="grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
             <section className="space-y-4">
+              {!isLoadingPublishedVacancies &&
+              !hasPublishedVacanciesError &&
+              filteredPublishedVacancies.length > 0 ? (
+                <div className="flex flex-col gap-3 rounded-3xl border border-border/80 bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                  <p className="text-sm text-muted-foreground">
+                    Página {safeCandidatePage} de {totalCandidatePages}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setCandidatePage((currentPage) => Math.max(1, currentPage - 1))}
+                      disabled={safeCandidatePage === 1}
+                      className={cn(
+                        "rounded-2xl border px-4 py-2 text-sm font-medium transition-colors",
+                        safeCandidatePage === 1
+                          ? "cursor-not-allowed border-border/60 bg-muted text-muted-foreground"
+                          : "border-border/80 bg-background text-foreground hover:bg-muted"
+                      )}
+                    >
+                      Anterior
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCandidatePage((currentPage) =>
+                          Math.min(totalCandidatePages, currentPage + 1)
+                        )
+                      }
+                      disabled={safeCandidatePage === totalCandidatePages}
+                      className={cn(
+                        "rounded-2xl border px-4 py-2 text-sm font-medium transition-colors",
+                        safeCandidatePage === totalCandidatePages
+                          ? "cursor-not-allowed border-border/60 bg-muted text-muted-foreground"
+                          : "border-border/80 bg-background text-foreground hover:bg-muted"
+                      )}
+                    >
+                      Próxima
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
               {isLoadingPublishedVacancies ? (
                 <article className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm">
                   <p className="text-sm text-muted-foreground">Carregando vagas publicadas...</p>
@@ -841,7 +907,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
 
               {!isLoadingPublishedVacancies &&
               !hasPublishedVacanciesError &&
-              filteredPublishedVacancies.map((vacancy) => {
+              paginatedPublishedVacancies.map((vacancy) => {
                 const isActive = selectedPublishedVacancy?.id === vacancy.id
 
                 return (
@@ -903,6 +969,7 @@ export function AuthDashboardScreen({ role }: AuthDashboardScreenProps) {
                   </button>
                 )
               })}
+
           </section>
 
           <div className="space-y-4">
